@@ -1,0 +1,20 @@
+{
+  "name": "rsvp_improved",
+  "version": "1.0.0",
+  "description": "A simple Node.js App that makes RSVP reading better.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "RSVP"
+  ],
+  "author": "Renis Fejzo",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "ejs": "^3.1.2",
+    "express": "^4.17.1",
+    "mongoose": "^5.9.10"
+  }
+}
