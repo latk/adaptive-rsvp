@@ -113,7 +113,6 @@ let rsvpModule = (function() {
         };
 
         slider.onchange = updateSpeed;
-        console.log(arrayOfWords);
     }
   
     return {
