@@ -78,7 +78,9 @@ let rsvpModule = (function() {
             index++;
         }
     }
+
     //public method
+    //intial intialization of the variables
     function intialSetup(document,window,words) {
         arrayOfWords=words;
         wordEl = document.getElementById("word");
@@ -86,8 +88,7 @@ let rsvpModule = (function() {
         wpmLabel = document.getElementById("wpmLabel");
 
         //clicking on the word stops or resumes
-        document.getElementsByClassName("mainReader")[0].onclick = function()
-        {
+        document.getElementsByClassName("mainReader")[0].onclick = function(){
             reset();
         }
 
