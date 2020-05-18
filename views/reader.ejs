@@ -5,9 +5,15 @@
 </div>
 
 <div class="slidecontainer">
+  <p>
+    <input type="checkbox" id="OPV" name="OPV" value="Optimal reading point"
+      onclick="opvTriggered()">
+    <label for="OPV">Optimal reading point</label><br>
+  </p>
   <input type="range" min="0" max="6" value="2" class="slider" id="range">
-  <p id="wpmLabel">Words/minute: </p>
+  <p id="wpmLabel">Words/minute: </p><br>
 </div>
+
 
 <a href="/" id="close"><i  class="fas fa-times"></i></a>
 
@@ -38,8 +44,21 @@
   let slider = document.getElementById("range"); //the slider for wpm
   let wpmLabel = document.getElementById("wpmLabel"); //label for wpm
 
+  function opvTriggered() {
+    // Get the checkbox
+    let opv = document.getElementById("OPV")
+
+    // If the opv is checked, apply appropriate margin
+    if (opv.checked == true && wordEl.offsetWidth > 150 ){
+      wordEl.style.margin = "0 0 0 10%"; /*Optimal reading point for long words. */
+    /* I will seek for a more "dynamic" way to do this ...*/
+    } else {
+      wordEl.style.margin = "0";
+    }
+  }
+
   slider.onchange = updateSpeed;
-    
+
   //this function updates the wpm when slider is changed
   function updateSpeed(){
     wpm = speeds[slider.value]; //slider has values from 0 - 6, the indexes of the array
@@ -86,6 +105,8 @@
       {
         index--;
         wordEl.innerHTML = arrayOfWords[index].word;
+
+        opvTriggered();
       }
 
   }
@@ -97,6 +118,8 @@
     {
       index++;
       wordEl.innerHTML = arrayOfWords[index].word;
+
+      opvTriggered(); 
     }
   }
 
@@ -128,6 +151,9 @@
   {
     wordEl.innerHTML = arrayOfWords[index].word;
     index++;
+
+    opvTriggered();
+
     if(index >= arrayOfWords.length)
     {
         stop();
