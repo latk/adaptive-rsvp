@@ -5,6 +5,11 @@
 </div>
 
 <div class="slidecontainer">
+  <p>
+    <input type="checkbox" id="OPV" name="OPV" value="Optimal reading point"
+      >
+    <label for="OPV">Optimal reading point</label><br>
+  </p>
   <input type="range" min="0" max="6" value="2" class="slider" id="range">
   <p id="wpmLabel">Words/minute: </p>
 </div>
@@ -16,8 +21,8 @@
 
 <script src="js/rsvp.js"></script>
 <script>
-    //passing browser document, window and words to rsvpModule
-    rsvpModule.intialSetup(document,window,<%- JSON.stringify(arrayOfWords) %>);
+    //passing words to rsvpModule
+    rsvpModule.setWords(<%- JSON.stringify(arrayOfWords) %>);
 </script>
 
 <%- include ("partials/footer.ejs") -%>
