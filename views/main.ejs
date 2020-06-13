@@ -11,20 +11,25 @@
         </nav>
       </div>
     </header>
-  
+
     <main role="main" class="inner cover">
-      <h1 class="cover-heading">Input your text and let us do the rest.</h1>
+      <h1 class="cover-heading">Read a text with RSVP !</h1>
 
       <form method="post" action="/reader">
         <div class="form-group">
           <!-- This inputText is what we work upon on the index.js file-->
-          <textarea class="form-control" id="inputText" name="inputText" placeholder="Once upon a time there was..." rows="3"></textarea>
+        <textarea class="form-control" id="inputText" name="inputText" placeholder="Once upon a time there was..." rows="10" readonly></textarea>
         </div>
         <p class="lead">
           <button type="submit" class="btn btn-lg btn-secondary">Start Reading</button>
         </p>
         <p class="lead">
-            We will help you read faster by flashing words at you using a Rapid Serial Visual Presentation.
+            <br>
+            This experiment will help us to understand if RSVP represents a good alternative to reading static text.
+            A text will be displayed using Rapid Serial Visual Presentation.Try to understand as much information
+            as possible. At the end of the reading session, you will be asked few questions regarding the corresponding text.
+            This will help us to measure your comprehensibility while using RSVP.
+            <br>Thank you.
         </p>
         <h3 class="cover-heading">Instructions: </h3>
         <p class="lead">
@@ -33,9 +38,9 @@
 
       </form>
 
-      
+
     </main>
-  
+
     <footer class="mastfoot mt-auto">
       <div class="inner">
         <p>HIS Frankfurt</p>
@@ -46,5 +51,23 @@
 
   </div>
 </div>
+
+<script>
+  let inputText = "As the US reopens in phases, more and more jobs are being " +
+  "added back to the economy. Unemployment officially fell to 13.3% in May " +
+  "as employers added 2.5 million jobs, the best month for job growth since the " +
+  "Bureau of Labor Statistics started tracking the data in 1939. The Labor " +
+  "Department noted that during the pandemic, millions of workers were " +
+  "misclassified as employed but not at work, when they should have been " +
+  "counted as unemployed on temporary layoff. If it weren't for those " +
+  "misclassifications, the unemployment rate would have been higher — around " +
+  "19.2% in April and 16.1% in May, not including seasonal adjustments. " +
+  "From retail to restaurants across America, people are returning to their " +
+  "old jobs or finding new ones. Here are the occupations that reported the " +
+  "most gains:";
+
+  document.getElementById("inputText").value = inputText;
+
+</script>
 
 <%- include ("partials/footer.ejs") -%>

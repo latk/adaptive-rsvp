@@ -20,7 +20,7 @@ app.set("view engine", "ejs");
 //Main route, this function is executed when the user goes on the main URL (In our case localhost:3000)
 app.get("/", function (req, res) {
   //When the user goes on / then render the main.ejs file(found on views.)
-  res.render("main"); 
+  res.render("main");
 });
 
 //same logic for /about
@@ -31,15 +31,16 @@ app.get("/about", function (req, res) {
 //this one is executed when a post request is passed through to this route (/reader) from a form on our case
 app.post("/reader", function (req, res) {
   //Here is where the magic will happen/happens.
-  
-  let inputText = req.body.inputText; 
+
+  let inputText = req.body.inputText;
+
   //gets the data from the form req.body(request body).Name of the variable on this case inputText(text from user)
-  
+
 
   let arrayOfWords = inputText.split(" "); //creates an array with all the words from the user text
 
   let arrayOfWordObjects = []; // This array will keep all Word Objects, which will contain the word and the word complexity.
-  
+
 
   arrayOfWords.forEach(function (word) {
     let el = {

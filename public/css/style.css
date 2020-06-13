@@ -11,7 +11,10 @@ body {
  */
 
 /* Our Styling */
-
+.cover-heading
+{
+  margin-top: 8%;
+}
 .mainReader {
   display: flex;
   flex-direction: column;
