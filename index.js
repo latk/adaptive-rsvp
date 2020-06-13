@@ -32,18 +32,7 @@ app.get("/about", function (req, res) {
 app.post("/reader", function (req, res) {
   //Here is where the magic will happen/happens.
 
-  let inputText = "As the US reopens in phases, more and more jobs are being " +
-  "added back to the economy. Unemployment officially fell to 13.3% in May " +
-  "as employers added 2.5 million jobs, the best month for job growth since the " +
-  "Bureau of Labor Statistics started tracking the data in 1939. The Labor " +
-  "Department noted that during the pandemic, millions of workers were " +
-  "misclassified as employed but not at work, when they should have been " +
-  "counted as unemployed on temporary layoff. If it weren't for those " +
-  "misclassifications, the unemployment rate would have been higher — around " +
-  "19.2% in April and 16.1% in May, not including seasonal adjustments. " +
-  "From retail to restaurants across America, people are returning to their " +
-  "old jobs or finding new ones. Here are the occupations that reported the " +
-  "most gains:";
+  let inputText = req.body.inputText;
 
   //gets the data from the form req.body(request body).Name of the variable on this case inputText(text from user)
 
