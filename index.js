@@ -28,6 +28,10 @@ app.get("/about", function (req, res) {
   res.render("about");
 });
 
+app.get("/form", function(req, res) {
+   res.render("form");
+})
+
 //this one is executed when a post request is passed through to this route (/reader) from a form on our case
 app.post("/reader", function (req, res) {
   //Here is where the magic will happen/happens.
@@ -51,5 +55,10 @@ app.post("/reader", function (req, res) {
   });
   res.render("reader", { arrayOfWords: arrayOfWordObjects }); //renders  reader.ejs and passes an array with the name arrayOfWords to the file
 });
+
+//this one is executed when the evaluationForm has been filled
+ app.post("/form", function (req, res) {
+
+ });
 
 app.listen(3000, () => console.log("The application started on port 3000"));
