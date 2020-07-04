@@ -1,6 +1,6 @@
 const express = require("express");
-const mongoose = require("mongoose"); //not yet put to work, it works as a framework for MongoDB
 const bodyParser = require("body-parser");
+const syll = require("syllable");
 
 //Express is a package that makes server side a lot easier.
 const app = express();
@@ -28,9 +28,9 @@ app.get("/about", function (req, res) {
   res.render("about");
 });
 
-app.get("/form", function(req, res) {
-   res.render("form");
-})
+app.get("/form", function (req, res) {
+  res.render("form");
+});
 
 //this one is executed when a post request is passed through to this route (/reader) from a form on our case
 app.post("/reader", function (req, res) {
@@ -40,25 +40,41 @@ app.post("/reader", function (req, res) {
 
   //gets the data from the form req.body(request body).Name of the variable on this case inputText(text from user)
 
-
   let arrayOfWords = inputText.split(" "); //creates an array with all the words from the user text
+  
 
-  let arrayOfWordObjects = []; // This array will keep all Word Objects, which will contain the word and the word complexity.
+  console.log(calculateComplexityScore(inputText));
+  
 
 
-  arrayOfWords.forEach(function (word) {
-    let el = {
-      word: word,
-      complexity: 1, //for the moment we have no function to calculate the complexity of the word, so all we do is pass a dummy value
-    };
-    arrayOfWordObjects.push(el); //adds this new word object to our array
-  });
-  res.render("reader", { arrayOfWords: arrayOfWordObjects }); //renders  reader.ejs and passes an array with the name arrayOfWords to the file
+
+
+  res.render("reader", { arrayOfWords: arrayOfWords }); //renders  reader.ejs and passes an array with the name arrayOfWords to the file
 });
 
-//this one is executed when the evaluationForm has been filled
- app.post("/form", function (req, res) {
+function calculateComplexityScore(text)
+{
+  let arrayOfWords = text.split(" ");
+  nrOfWords = arrayOfWords.length;
+  const re = /[.!?]/;
+  const nrOfSentences = text.split(re).length - 1;
+  let nrOfSyllables = 0;
 
- });
+  arrayOfWords.forEach(function(word){
+    let s = syll(word);
+    nrOfSyllables = nrOfSyllables + s;
+  });
+
+  let asl = nrOfWords/nrOfSentences;
+  let asw = nrOfSyllables/nrOfWords;
+
+  let score = 206.835 - (1.015 * asl ) - (84.6 * asw);
+  return score;
+
+}
+
+
+//this one is executed when the evaluationForm has been filled
+app.post("/form", function (req, res) {});
 
 app.listen(3000, () => console.log("The application started on port 3000"));
