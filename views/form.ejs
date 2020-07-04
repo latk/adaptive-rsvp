@@ -1,0 +1,51 @@
+<%- include("partials/header.ejs") -%>
+
+<form method="post" action="/form" class="evaluationForm">
+
+  <div>
+    <p class="lead"> Question - 1 ? </p>
+    <div class="answers">
+        <div> <input type="radio" id="quastions1-y" name="question" value="yes">
+        <label for="yes">Yes</label>
+      </div>
+      <div>
+        <input type="radio" id="question1-n" name="question" value="no">
+        <label for="no">No</label><br>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <p class="lead"> Question - 2 which is quite longer than the one before ? </p>
+    <div class=answers>
+      <div>  <input type="radio" id="quastions2-y" name="question" value="yes">
+        <label for="yes">Yes</label>
+      </div>
+      <div>
+        <input type="radio" id="question2-n" name="question" value="no">
+        <label for="no">No</label><br>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <p class="lead"> Question - 3 an other question that need to be answered ? </p>
+    <div class=answers>
+      <div>  <input type="radio" id="quastions3-y" name="question" value="yes">
+        <label for="yes">Yes</label>
+      </div>
+      <div>
+        <input type="radio" id="question3-n" name="question" value="no">
+        <label for="no">No</label><br>
+      </div>
+    </div>
+  </div>
+
+
+  <p class="lead">
+    <button type="submit" class="btn btn-lg btn-secondary">Submit</button>
+  </p>
+
+</form>
+
+<%- include ("partials/footer.ejs") -%>

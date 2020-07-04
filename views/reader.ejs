@@ -5,13 +5,17 @@
 </div>
 
 <div class="slidecontainer">
-  <p>
+  
+  <!-- <p>
     <input type="checkbox" id="OPV" name="OPV" value="Optimal reading point"
       >
     <label for="OPV">Optimal reading point</label><br>
-  </p>
-  <input type="range" min="0" max="6" value="2" class="slider" id="range">
+  </p> -->
+  <!-- <input type="range" min="0" max="6" value="2" class="slider" id="range"> -->
   <p id="wpmLabel">Words/minute: </p>
+  <p class="lead">
+    <a href="/form" class="btn btn-lg btn-secondary" style="display:none" id="nextButton">NEXT</a>
+  </p>
 </div>
 
 <a href="/" id="close"><i  class="fas fa-times"></i></a>
@@ -22,7 +26,7 @@
 <script src="js/rsvp.js"></script>
 <script>
     //passing words to rsvpModule
-    rsvpModule.setWords(<%- JSON.stringify(arrayOfWords) %>);
+    rsvpModule.init(<%- JSON.stringify(arrayOfWords) %>, 300);
 </script>
 
 <%- include ("partials/footer.ejs") -%>

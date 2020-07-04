@@ -6,7 +6,7 @@ body {
   background-color: rgb(24, 26, 27);
   color: rgb(222, 219, 214);
   font-family: "Bitter", serif;
-   font-family: 'Playfair Display', serif;  
+   font-family: 'Playfair Display', serif;
 }
  */
 
@@ -23,6 +23,23 @@ body {
   text-align: center;
   min-height: 100vh;
   margin: 0 auto;
+}
+.evaluationForm{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin: 0 auto;
+}
+.evaluationForm .answers{
+  display: flex;
+  width: 150px;
+  justify-content: space-between;
+  margin: auto;
+}
+.evaluationForm .lead {
+  margin-top: 10%;
 }
 
 #word {
