@@ -3,9 +3,8 @@ let rsvpModule = (function () {
   let index = 0; //at which word are we in the array
   let wpm; //wpm
   let interval; //the reference returned by the setInterval function, to stop or play
-  let speeds = [150, 250, 300, 450, 575, 675, 800]; //wpms
+  //let speeds = [150, 250, 300, 450, 575, 675, 800]; //wpms
   let speedIndex = 0;
-
 
   let finished = false;
   let nextButton = document.getElementById("nextButton");
@@ -16,22 +15,6 @@ let rsvpModule = (function () {
   wordEl = document.getElementById("word"); //Html element that will display the words.
 
   wpmLabel = document.getElementById("wpmLabel");
-
-  // OPV Implemented by Louis
-  // opvCheckBox = document.getElementById("OPV"); //obtain the HTML element
-  // opvCheckBox.onclick = opvTriggered;
-
-  //OPV Function implemented by Louis
-  // function opvTriggered() {
-  //   // If the opv is checked, apply appropriate margin
-  //   if (opvCheckBox.checked && wordEl.offsetWidth > 150) {
-  //     wordEl.style.margin =
-  //       "0 0 0 10%"; /*Optimal reading point for long words. */
-  //     /* I will seek for a more "dynamic" way to do this ...*/
-  //   } else {
-  //     wordEl.style.margin = "0";
-  //   }
-  // }
 
   //init
   function init(words, wordsPerMinute) {
@@ -50,8 +33,7 @@ let rsvpModule = (function () {
     if (!playing) return;
     clearInterval(interval); //clears the interval
     playing = false;
-    if(finished)
-    {
+    if (finished) {
       nextButton.style.display = "block";
     }
   }
@@ -69,8 +51,7 @@ let rsvpModule = (function () {
     if (index < arrayOfWords.length - 1) {
       index++;
       wordEl.innerHTML = arrayOfWords[index];
-      if(index == arrayOfWords.length - 1)
-      {
+      if (index == arrayOfWords.length - 1) {
         finished = true;
         nextButton.style.display = "block";
       }
@@ -125,55 +106,65 @@ let rsvpModule = (function () {
   };
 
   function faster() {
-    if (!manual) {
-      //first time to adjust speed
-      manual = true;
-      speedsNr = speeds.length;
-      for (let i = 0; i < speedsNr; i++) {
-        if (wpm < speeds[i]) {
-          wpm = speeds[i];
-          speedIndex = i;
-          updateLabel();
-          adjustSpeed();
-          break;
-        }
-      }
-    } else {
-      speedIndex++;
-      if (speedIndex < speeds.length) {
-        wpm = speeds[speedIndex];
-        updateLabel();
-        adjustSpeed();
-      } else {
-        speedIndex = speeds.length - 1;
-      }
-    }
+    wpm += 10;
+    updateLabel();
+    adjustSpeed();
+    // if (!manual) {
+    //   //first time to adjust speed
+    //   manual = true;
+    //   speedsNr = speeds.length;
+    //   for (let i = 0; i < speedsNr; i++) {
+    //     if (wpm < speeds[i]) {
+    //       wpm = speeds[i];
+    //       speedIndex = i;
+    //       updateLabel();
+    //       adjustSpeed();
+    //       break;
+    //     }
+    //   }
+    // } else {
+    //   speedIndex++;
+    //   if (speedIndex < speeds.length) {
+    //     wpm = speeds[speedIndex];
+    //     updateLabel();
+    //     adjustSpeed();
+    //   } else {
+    //     speedIndex = speeds.length - 1;
+    //   }
+    // }
   }
 
   function slower() {
-    if (!manual) {
-      //first time to adjust speed
-      manual = true;
-      speedsNr = speeds.length;
-      for (let i = speedsNr-1; i >= 0; i--) {
-        if (wpm > speeds[i]) {
-          wpm = speeds[i];
-          speedIndex = i;
-          updateLabel();
-          adjustSpeed();
-          break;
-        }
-      }
-    } else {
-      speedIndex--;
-      if (speedIndex >= 0) {
-        wpm = speeds[speedIndex];
-        updateLabel();
-        adjustSpeed();
-      } else {
-        speedIndex = 0;
-      }
+    previousWpm = wpm;
+    wpm -= 10;
+    if (wpm < 100) {
+      wpm = previousWpm;
     }
+    updateLabel();
+    adjustSpeed();
+    // if (!manual) {
+    //   //first time to adjust speed
+    //   manual = true;
+    //   speedsNr = speeds.length;
+    //   for (let i = speedsNr-1; i >= 0; i--) {
+    //     if (wpm > speeds[i]) {
+    //       wpm = speeds[i];
+    //       speedIndex = i;
+    //       updateLabel();
+    //       adjustSpeed();
+    //       break;
+    //     }
+    //   }
+    // } else {
+    //   speedIndex--;
+    //   if (speedIndex >= 0) {
+    //     wpm = speeds[speedIndex];
+    //     updateLabel();
+    //     adjustSpeed();
+    //   } else {
+    //     speedIndex = 0;
+    //   }
+    // }
   }
 
   function adjustSpeed() {
