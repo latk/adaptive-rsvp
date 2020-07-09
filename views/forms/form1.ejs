@@ -1,15 +1,15 @@
-<%- include("partials/header.ejs") -%>
+<%- include("../partials/header.ejs") -%>
 
-<form method="post" action="/form" class="evaluationForm">
-
+<form method="post" action="/formHandler" class="evaluationForm">
+  <input type="number" name="formNr" id="formNr" value=<%= formNr %> style="display: none" >
   <div>
     <p class="lead"> Question - 1 ? </p>
     <div class="answers">
-        <div> <input type="radio" id="quastions1-y" name="question" value="yes">
+        <div> <input type="radio"  name="question1" value="yes" required>
         <label for="yes">Yes</label>
       </div>
       <div>
-        <input type="radio" id="question1-n" name="question" value="no">
+        <input type="radio"  name="question1" value="no">
         <label for="no">No</label><br>
       </div>
     </div>
@@ -18,11 +18,11 @@
   <div>
     <p class="lead"> Question - 2 which is quite longer than the one before ? </p>
     <div class=answers>
-      <div>  <input type="radio" id="quastions2-y" name="question" value="yes">
+      <div>  <input type="radio"  name="question2" value="yes" required>
         <label for="yes">Yes</label>
       </div>
       <div>
-        <input type="radio" id="question2-n" name="question" value="no">
+        <input type="radio"  name="question2" value="no">
         <label for="no">No</label><br>
       </div>
     </div>
@@ -31,11 +31,11 @@
   <div>
     <p class="lead"> Question - 3 an other question that need to be answered ? </p>
     <div class=answers>
-      <div>  <input type="radio" id="quastions3-y" name="question" value="yes">
+      <div>  <input type="radio"  name="question3" value="yes" required>
         <label for="yes">Yes</label>
       </div>
       <div>
-        <input type="radio" id="question3-n" name="question" value="no">
+        <input type="radio"  name="question3" value="no">
         <label for="no">No</label><br>
       </div>
     </div>
@@ -48,4 +48,4 @@
 
 </form>
 
-<%- include ("partials/footer.ejs") -%>
+<%- include ("../partials/footer.ejs") -%>

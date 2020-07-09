@@ -1,22 +1,26 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const syll = require("syllable");
-
-let couples = [
-  [0, 100],
-  [15, 150],
-  [25, 200],
-  [35, 250],
-  [45, 300],
-  [55, 350],
-  [65, 400],
-  [75, 500],
-  [85, 600],
-  [95, 675],
-  [100, 700],
-];
+var cookieParser = require("cookie-parser");
+const { Collection } = require("mongoose");
 //Express is a package that makes server side a lot easier.
 const app = express();
+
+let textArray = require("./texts");
+let textMethods = require("./textMethods");
+
+app.use(cookieParser()); // To access cookies quickly
+
+let texts = [
+  { text: textArray[0], form: 1, automaticSpeed: true },
+  { text: textArray[1], form: 2, automaticSpeed: true },
+  { text: textArray[2], form: 3, automaticSpeed: true },
+  { text: textArray[3], form: 4, automaticSpeed: true },
+  { text: textArray[4], form: 5, automaticSpeed: true },
+  { text: textArray[5], form: 6, automaticSpeed: true },
+];
+shuffle(texts);
+
+let information = { texts: texts, index: 0, finished: false }; //cookie Information, index shows on which text are we.
 
 //This line is to ensure that getting info from a HTML form is easier. (will see later)
 app.use(
@@ -32,8 +36,10 @@ app.set("view engine", "ejs");
 
 //Main route, this function is executed when the user goes on the main URL (In our case localhost:3000)
 app.get("/", function (req, res) {
+  res.cookie("Information", information); //Creates Cookie With all data inside
+
   //When the user goes on / then render the main.ejs file(found on views.)
-  res.render("main");
+  res.render("main", { initText: texts[0].text });
 });
 
 //same logic for /about
@@ -46,87 +52,68 @@ app.get("/form", function (req, res) {
 });
 
 //this one is executed when a post request is passed through to this route (/reader) from a form on our case
-app.post("/reader", function (req, res) {
-  //Here is where the magic will happen/happens.
+app.get("/reader", function (req, res) {
+  let cookie = req.cookies["Information"];
+  let readingFinished = cookie.finished;
+  if (!readingFinished) {
+    let textIndex = cookie.index;
+    let inputText = cookie.texts[textIndex].text; // Text we are reading at the moment
+    let automatic = cookie.texts[textIndex].automaticSpeed;
+    let formNr = cookie.texts[textIndex].form;
 
-  let inputText = req.body.inputText;
+    let arrayOfWords = inputText.split(" "); //creates an array with all the words from the user text
 
-  //gets the data from the form req.body(request body).Name of the variable on this case inputText(text from user)
+    let speed = 300;
+    if (automatic) {
+      let textComplexityScore = Math.round(
+        textMethods.calculateComplexityScore(inputText)
+      );
+      speed = textMethods.interpolate(textComplexityScore);
+      console.log(
+        "Complexity Score = " +
+          textComplexityScore +
+          "\nAutomated Speed = " +
+          speed
+      );
+    }
 
-  let arrayOfWords = inputText.split(" "); //creates an array with all the words from the user text
-
-  let textComplexityScore = Math.round(calculateComplexityScore(inputText));
-  let automatedSpeed = interpolate(textComplexityScore);
-  console.log(
-    "Complexity Score = " +
-      textComplexityScore +
-      "\nAutomated Speed = " +
-      automatedSpeed
-  );
-
-  res.render("reader", { arrayOfWords: arrayOfWords }); //renders  reader.ejs and passes an array with the name arrayOfWords to the file
-});
-
-function interpolate(score) {
-  let i, j, x;
-  if (score >= 95) {
-    i = 10;
-  } else if (score >= 85 && score < 95) {
-    i = 9;
-  } else if (score >= 75 && score < 85) {
-    i = 8;
-  } else if (score >= 65 && score < 75) {
-    i = 7;
-  } else if (score >= 55 && score < 65) {
-    i = 6;
-  } else if (score >= 45 && score < 55) {
-    i = 5;
-  } else if (score >= 35 && score < 45) {
-    i = 4;
-  } else if (score >= 25 && score < 35) {
-    i = 3;
-  } else if (score >= 15 && score < 25) {
-    i = 2;
-  } else {
-    i = 1;
+    res.render("reader", { arrayOfWords: arrayOfWords, speed: speed, form: formNr }); //renders  reader.ejs and passes an array with the name arrayOfWords to the file
   }
-  j = i - 1;
-
-  firstSpeed = couples[i][1];
-  secondSpeed = couples[j][1];
-  firstScore = couples[i][0];
-  secondScore = couples[j][0];
-
-  x =
-    ((firstSpeed - secondSpeed) * (score - secondScore)) /
-      (firstScore - secondScore) +
-    secondSpeed;
-
-  return x;
-}
-
-function calculateComplexityScore(text) {
-  let arrayOfWords = text.split(" ");
-  nrOfWords = arrayOfWords.length;
-  const re = /[.!?]/;
-  const nrOfSentences = text.split(re).length - 1;
-  let nrOfSyllables = 0;
-
-  arrayOfWords.forEach(function (word) {
-    let s = syll(word);
-    nrOfSyllables = nrOfSyllables + s;
-  });
-
-  let asl = nrOfWords / nrOfSentences;
-  let asw = nrOfSyllables / nrOfWords;
-
-  let score = 206.835 - 1.015 * asl - 84.6 * asw;
-  return score;
-}
-
-//this one is executed when the evaluationForm has been filled
-app.post("/form", function (req, res) {
-  res.render("form");
 });
 
+app.get("/form/:formNr", function(req,res){
+  let formNr = req.params.formNr;
+  res.render("forms/form" + formNr, {formNr: formNr});
+})
+
+app.post("/formHandler", function (req, res) {
+  console.log("This form is form nr: " + req.body.formNr);
+  console.log(req.body.question1);
+  
+  
+  let cookie = req.cookies["Information"];
+  let index = cookie.index + 1;
+  let array = cookie.texts;
+  let finished = cookie.finished;
+
+  let textsLength = array.length;
+  if (index >= textsLength) {
+    finished = true;
+    res.cookie("Information", { texts: array, index: index, finished: finished });
+    res.render("finished");
+  } else {
+    res.cookie("Information", { texts: array, index: index, finished: finished });
+    res.redirect("/reader");
+  }
+});
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * i);
+    const temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
+  }
+  return array;
+}
 app.listen(3000, () => console.log("The application started on port 3000"));
