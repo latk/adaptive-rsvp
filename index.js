@@ -7,6 +7,7 @@ const app = express();
 
 let textArray = require("./texts");
 let textMethods = require("./textMethods");
+const e = require("express");
 
 app.use(cookieParser()); // To access cookies quickly
 
@@ -18,7 +19,7 @@ let texts = [
   { text: textArray[4], form: 5, automaticSpeed: true },
   { text: textArray[5], form: 6, automaticSpeed: true },
 ];
-shuffle(texts);
+//shuffle(texts);
 
 let information = { texts: texts, index: 0, finished: false }; //cookie Information, index shows on which text are we.
 
@@ -47,10 +48,6 @@ app.get("/about", function (req, res) {
   res.render("about");
 });
 
-app.get("/form", function (req, res) {
-  res.render("form");
-});
-
 //this one is executed when a post request is passed through to this route (/reader) from a form on our case
 app.get("/reader", function (req, res) {
   let cookie = req.cookies["Information"];
@@ -77,20 +74,35 @@ app.get("/reader", function (req, res) {
       );
     }
 
-    res.render("reader", { arrayOfWords: arrayOfWords, speed: speed, form: formNr }); //renders  reader.ejs and passes an array with the name arrayOfWords to the file
+    res.render("reader", {
+      arrayOfWords: arrayOfWords,
+      speed: speed,
+      form: formNr,
+    }); //renders  reader.ejs and passes an array with the name arrayOfWords to the file
+  } else {
+    res.render("finished");
   }
 });
 
-app.get("/form/:formNr", function(req,res){
+app.get("/form/:formNr", function (req, res) {
   let formNr = req.params.formNr;
-  res.render("forms/form" + formNr, {formNr: formNr});
-})
+  let countFaster = req.query.cf;
+  let countSlower = req.query.cs;
+  let time = req.query.t;
+
+  res.render("forms/form" + formNr, {
+    formNr: formNr,
+    countFaster: countFaster,
+    countSlower: countSlower,
+    time: time,
+  });
+});
 
 app.post("/formHandler", function (req, res) {
-  console.log("This form is form nr: " + req.body.formNr);
-  console.log(req.body.question1);
-  
-  
+  /*
+      Work with form data
+
+  */
   let cookie = req.cookies["Information"];
   let index = cookie.index + 1;
   let array = cookie.texts;
@@ -99,10 +111,18 @@ app.post("/formHandler", function (req, res) {
   let textsLength = array.length;
   if (index >= textsLength) {
     finished = true;
-    res.cookie("Information", { texts: array, index: index, finished: finished });
+    res.cookie("Information", {
+      texts: array,
+      index: index,
+      finished: finished,
+    });
     res.render("finished");
   } else {
-    res.cookie("Information", { texts: array, index: index, finished: finished });
+    res.cookie("Information", {
+      texts: array,
+      index: index,
+      finished: finished,
+    });
     res.redirect("/reader");
   }
 });

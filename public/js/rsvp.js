@@ -4,7 +4,13 @@ let rsvpModule = (function () {
   let wpm; //wpm
   let interval; //the reference returned by the setInterval function, to stop or play
   //let speeds = [150, 250, 300, 450, 575, 675, 800]; //wpms
-  let speedIndex = 0;
+  //let speedIndex = 0;
+
+  let countSlower = 0;
+  let countFaster = 0;
+
+  let startTime;
+  var seconds;
 
   let finished = false;
   let nextButton = document.getElementById("nextButton");
@@ -53,6 +59,7 @@ let rsvpModule = (function () {
       wordEl.innerHTML = arrayOfWords[index];
       if (index == arrayOfWords.length - 1) {
         finished = true;
+        stopTimer();
         nextButton.style.display = "block";
       }
     }
@@ -73,6 +80,7 @@ let rsvpModule = (function () {
   function playerOn() {
     if (index >= arrayOfWords.length) {
       finished = true;
+      stopTimer();
       stop();
     } else {
       wordEl.innerHTML = arrayOfWords[index];
@@ -109,6 +117,7 @@ let rsvpModule = (function () {
     wpm += 10;
     updateLabel();
     adjustSpeed();
+    countFaster++;
     // if (!manual) {
     //   //first time to adjust speed
     //   manual = true;
@@ -142,6 +151,7 @@ let rsvpModule = (function () {
     }
     updateLabel();
     adjustSpeed();
+    countSlower++;
     // if (!manual) {
     //   //first time to adjust speed
     //   manual = true;
@@ -181,9 +191,26 @@ let rsvpModule = (function () {
   window.onload = function () {
     updateLabel();
     setTimeout(play, 600);
+    startTime = performance.now();
   };
 
+  function stopTimer() {
+    let endTime = performance.now();
+    var timeDiff = endTime - startTime - 600; //in ms
+    // strip the ms
+    timeDiff /= 1000;
+    // get seconds
+    seconds = Math.round(timeDiff);
+  }
+  function getData() {
+    return {
+      countFaster: countFaster,
+      countSlower: countSlower,
+      time: seconds,
+    };
+  }
   return {
     init: init,
+    getData: getData,
   };
 })();

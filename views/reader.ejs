@@ -5,22 +5,35 @@
 </div>
 
 <div class="slidecontainer">
-  
-  <p id="wpmLabel">Words/minute: </p>
+  <p id="wpmLabel">Words/minute:</p>
   <p class="lead">
-    <a href="/form/<%= form %>" class="btn btn-lg btn-secondary" style="display:none" id="nextButton">NEXT</a>
+    <a
+      href="/form/<%= form %>"
+      class="btn btn-lg btn-secondary"
+      style="display: none;"
+      id="nextButton"
+      onmouseover="addData()"
+      >NEXT</a
+    >
   </p>
 </div>
 
-<a href="/" id="close"><i  class="fas fa-times"></i></a>
-
-
-
+<a href="/" id="close"><i class="fas fa-times"></i></a>
 
 <script src="js/rsvp.js"></script>
 <script>
-    //passing words to rsvpModule
-    rsvpModule.init(<%- JSON.stringify(arrayOfWords) %>, <%= speed %>);
+  //passing words to rsvpModule
+  rsvpModule.init(<%- JSON.stringify(arrayOfWords) %>, <%= speed %>);
+
+  function addData()
+  {
+    let cf = rsvpModule.getData().countFaster;
+    let cs = rsvpModule.getData().countSlower;
+    let t = rsvpModule.getData().time;
+    let el = document.getElementById("nextButton");
+    let formNr = <%= form %>;
+    el.setAttribute("href", "/form/" +  formNr + "?cf=" + cf + "&cs=" +cs + "&t=" + t);
+  }
 </script>
 
 <%- include ("partials/footer.ejs") -%>
