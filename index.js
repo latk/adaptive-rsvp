@@ -1,7 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 var cookieParser = require("cookie-parser");
-const { Collection } = require("mongoose");
+const mongoose = require("mongoose");
 //Express is a package that makes server side a lot easier.
 const app = express();
 
@@ -34,6 +34,28 @@ app.use(express.static(__dirname + "/public"));
 
 //Sets the view engine to EJS which makes data exchanging through back-end and front-end a lot easier.
 app.set("view engine", "ejs");
+
+/* DATABASE PART */
+mongoose.connect(
+  "mongodb+srv://admin_renis:" +
+    "renishis" +
+    "@cluster0-ervkr.mongodb.net/RSPV_Data?retryWrites=true&w=majority",
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  }
+); // Online conection with my Mongo database online
+
+const formDataSchema = new mongoose.Schema({
+  passage: Number,
+  answer: String,
+  reading_duration: Number,
+  interactions: { slower: Number, faster: Number, pauses: Number },
+});
+
+const formDataDB = new mongoose.model("answer", formDataSchema);
+
+/* END DB */
 
 //Main route, this function is executed when the user goes on the main URL (In our case localhost:3000)
 app.get("/", function (req, res) {
@@ -88,6 +110,7 @@ app.get("/form/:formNr", function (req, res) {
   let formNr = req.params.formNr;
   let countFaster = req.query.cf;
   let countSlower = req.query.cs;
+  let countPauses = req.query.cp;
   let time = req.query.t;
 
   res.render("forms/form" + formNr, {
@@ -95,6 +118,7 @@ app.get("/form/:formNr", function (req, res) {
     countFaster: countFaster,
     countSlower: countSlower,
     time: time,
+    countPauses: countPauses,
   });
 });
 
@@ -103,6 +127,26 @@ app.post("/formHandler", function (req, res) {
       Work with form data
 
   */
+  let passage = req.body.formNr;
+  let countFaster = req.body.countFaster;
+  let countSlower = req.body.countSlower;
+  let countPauses = req.body.countPauses;
+  let time = req.body.time;
+  let answer = req.body.question;
+
+  let dataToDb = new formDataDB({
+    passage: passage,
+    answer: answer,
+    reading_duration: time,
+    interactions: {
+      slower: countSlower,
+      faster: countFaster,
+      pauses: countPauses,
+    },
+  });
+
+  dataToDb.save();
+
   let cookie = req.cookies["Information"];
   let index = cookie.index + 1;
   let array = cookie.texts;

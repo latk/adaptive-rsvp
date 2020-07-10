@@ -29,10 +29,11 @@
   {
     let cf = rsvpModule.getData().countFaster;
     let cs = rsvpModule.getData().countSlower;
+    let cp = rsvpModule.getData().countPauses;
     let t = rsvpModule.getData().time;
     let el = document.getElementById("nextButton");
     let formNr = <%= form %>;
-    el.setAttribute("href", "/form/" +  formNr + "?cf=" + cf + "&cs=" +cs + "&t=" + t);
+    el.setAttribute("href", "/form/" +  formNr + "?cf=" + cf + "&cs=" +cs + "&cp=" + cp + "&t=" + t);
   }
 </script>
 

@@ -8,6 +8,7 @@ let rsvpModule = (function () {
 
   let countSlower = 0;
   let countFaster = 0;
+  let countPauses = 0;
 
   let startTime;
   var seconds;
@@ -90,6 +91,10 @@ let rsvpModule = (function () {
 
   //clicking on the word stops or resumes
   document.getElementsByClassName("mainReader")[0].onclick = function () {
+    if(playing)
+    {
+      countPauses++;
+    }
     reset();
   };
 
@@ -105,6 +110,10 @@ let rsvpModule = (function () {
         rewind();
         break;
       case " ":
+        if(playing)
+        {
+          countPauses++;
+        }
         reset();
         break;
       case "ArrowRight":
@@ -207,6 +216,7 @@ let rsvpModule = (function () {
       countFaster: countFaster,
       countSlower: countSlower,
       time: seconds,
+      countPauses: countPauses
     };
   }
   return {
