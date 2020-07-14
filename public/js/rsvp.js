@@ -153,14 +153,17 @@ let rsvpModule = (function () {
   }
 
   function slower() {
-    previousWpm = wpm;
     wpm -= 10;
     if (wpm < 100) {
-      wpm = previousWpm;
+      wpm = wpm + 10;
     }
-    updateLabel();
-    adjustSpeed();
-    countSlower++;
+    else
+    {
+      countSlower++;
+      updateLabel();
+      adjustSpeed();
+    }
+    
     // if (!manual) {
     //   //first time to adjust speed
     //   manual = true;
