@@ -12,14 +12,14 @@ const e = require("express");
 app.use(cookieParser()); // To access cookies quickly
 
 let texts = [
-  { text: textArray[0], form: 1, automaticSpeed: true },
-  { text: textArray[1], form: 2, automaticSpeed: true },
-  { text: textArray[2], form: 3, automaticSpeed: true },
-  { text: textArray[3], form: 4, automaticSpeed: true },
-  { text: textArray[4], form: 5, automaticSpeed: true },
-  { text: textArray[5], form: 6, automaticSpeed: true },
-];
-//shuffle(texts);
+  { text: 0, form: 1, automaticSpeed: true },
+  { text: 1, form: 2, automaticSpeed: true },
+  { text: 2, form: 3, automaticSpeed: true },
+  { text: 3, form: 4, automaticSpeed: true },
+  { text: 4, form: 5, automaticSpeed: true },
+  { text: 5, form: 6, automaticSpeed: true },
+]; // text shows the index on the text Array
+shuffle(texts);
 
 let information = { texts: texts, index: 0, finished: false }; //cookie Information, index shows on which text are we.
 
@@ -61,8 +61,10 @@ const formDataDB = new mongoose.model("answer", formDataSchema);
 app.get("/", function (req, res) {
   res.cookie("Information", information); //Creates Cookie With all data inside
 
+  let textNr = texts[0].text;
+  let inputText = textArray[textNr]
   //When the user goes on / then render the main.ejs file(found on views.)
-  res.render("main", { initText: texts[0].text });
+  res.render("main", { initText: inputText });
 });
 
 //same logic for /about
@@ -76,7 +78,8 @@ app.get("/reader", function (req, res) {
   let readingFinished = cookie.finished;
   if (!readingFinished) {
     let textIndex = cookie.index;
-    let inputText = cookie.texts[textIndex].text; // Text we are reading at the moment
+    let textNr = cookie.texts[textIndex].text;
+    let inputText = textArray[textNr] // Text we are reading at the moment
     let automatic = cookie.texts[textIndex].automaticSpeed;
     let formNr = cookie.texts[textIndex].form;
 
