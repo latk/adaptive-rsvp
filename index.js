@@ -1,13 +1,12 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 var cookieParser = require("cookie-parser");
-const mongoose = require("mongoose");
 //Express is a package that makes server side a lot easier.
 const app = express();
 
+const database = require("./database");
 let textArray = require("./texts");
 let textMethods = require("./textMethods");
-const e = require("express");
 
 app.use(cookieParser()); // To access cookies quickly
 
@@ -39,28 +38,6 @@ app.use(express.static(__dirname + "/public"));
 
 //Sets the view engine to EJS which makes data exchanging through back-end and front-end a lot easier.
 app.set("view engine", "ejs");
-
-/* DATABASE PART */
-mongoose.connect(
-  "mongodb+srv://admin_renis:" +
-    "renishis" +
-    "@cluster0-ervkr.mongodb.net/RSPV_Data?retryWrites=true&w=majority",
-  {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  }
-); // Online conection with my Mongo database online
-
-const formDataSchema = new mongoose.Schema({
-  passage: Number,
-  answer: String,
-  reading_duration: Number,
-  interactions: { slower: Number, faster: Number, pauses: Number },
-});
-
-const formDataDB = new mongoose.model("answer", formDataSchema);
-
-/* END DB */
 
 //Main route, this function is executed when the user goes on the main URL (In our case localhost:3000)
 app.get("/", function (req, res) {
@@ -142,7 +119,7 @@ app.post("/formHandler", function (req, res) {
   let time = req.body.time;
   let answer = req.body.question;
 
-  let dataToDb = new formDataDB({
+  database.saveFormData({
     passage: passage,
     answer: answer,
     reading_duration: time,
@@ -152,8 +129,6 @@ app.post("/formHandler", function (req, res) {
       pauses: countPauses,
     },
   });
-
-  dataToDb.save();
 
   let cookie = req.cookies["Information"];
   let index = cookie.index + 1;
@@ -188,4 +163,5 @@ function shuffle(array) {
   }
   return array;
 }
+
 app.listen(3000, () => console.log("The application started on port 3000"));

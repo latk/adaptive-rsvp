@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+
+  database:
+    image: mongo:4
+    restart: always
+    volumes:
+      - data:/data/db
+
+  app:
+    image: node:14
+    restart: always
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/app:ro
+    working_dir: /app
+    entrypoint: [node, index.js]
+    environment:
+      # no auth required, which is secure because mongo is only visible locally
+      DATABASE: mongodb://database/rsvp?retryWrites=true
+
+volumes:
+  data:
