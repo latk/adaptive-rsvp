@@ -8,7 +8,7 @@
   <p id="wpmLabel">Words/minute:</p>
   <p class="lead">
     <a
-      href="/form/<%= form %>"
+      href="/form"
       class="btn btn-lg btn-secondary"
       style="display: none;"
       id="nextButton"
@@ -26,15 +26,15 @@
   //passing words to rsvpModule
   rsvpModule.init(<%- JSON.stringify(arrayOfWords) %>, <%= speed %>);
 
-  function addData()
-  {
-    let cf = rsvpModule.getData().countFaster;
-    let cs = rsvpModule.getData().countSlower;
-    let cp = rsvpModule.getData().countPauses;
-    let t = rsvpModule.getData().time;
+  function addData() {
+    let {
+      countFaster: cf,
+      countSlower: cs,
+      countPauses: cp,
+      time: t,
+    } = rsvpModule.getData();
     let el = document.getElementById("nextButton");
-    let formNr = <%= form %>;
-    el.setAttribute("href", "/form/" +  formNr + "?cf=" + cf + "&cs=" +cs + "&cp=" + cp + "&t=" + t);
+    el.setAttribute("href", `/form?cf=${cf}&cs=${cs}&cp=${cp}&t=${t}`);
   }
 </script>
 

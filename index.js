@@ -5,27 +5,10 @@ var cookieParser = require("cookie-parser");
 const app = express();
 
 const database = require("./database");
-let textArray = require("./texts");
+let { texts } = require("./texts");
 let textMethods = require("./textMethods");
 
 app.use(cookieParser()); // To access cookies quickly
-
-let texts = [
-  { text: 0, form: 1, automaticSpeed: true },
-  { text: 1, form: 2, automaticSpeed: true },
-  { text: 2, form: 3, automaticSpeed: true },
-  { text: 3, form: 4, automaticSpeed: true },
-  { text: 4, form: 5, automaticSpeed: true },
-  { text: 5, form: 6, automaticSpeed: false },
-  { text: 6, form: 7, automaticSpeed: false },
-  { text: 7, form: 8, automaticSpeed: false },
-  { text: 8, form: 9, automaticSpeed: false },
-  { text: 9, form: 10, automaticSpeed: false },
-
-]; // text shows the index on the text Array
-shuffle(texts);
-
-let information = { texts: texts, index: 0, finished: false }; //cookie Information, index shows on which text are we.
 
 //This line is to ensure that getting info from a HTML form is easier. (will see later)
 app.use(
@@ -41,12 +24,16 @@ app.set("view engine", "ejs");
 
 //Main route, this function is executed when the user goes on the main URL (In our case localhost:3000)
 app.get("/", function (req, res) {
-  res.cookie("Information", information); //Creates Cookie With all data inside
+  // Creates Cookie With all data inside
+  const textOrder = shuffle([...Array(texts.length).keys()]);
+  res.cookie("Information", {
+    textOrder, // the order of text snippets
+    index: 0, // at which text we currently are
+    finished: false, // whether all texts have been completed
+  });
 
-  let textNr = texts[0].text;
-  let inputText = textArray[textNr]
   //When the user goes on / then render the main.ejs file(found on views.)
-  res.render("main", { initText: inputText });
+  res.render("main", { initText: texts[textOrder[0]].text });
 });
 
 //same logic for /about
@@ -56,72 +43,70 @@ app.get("/about", function (req, res) {
 
 //this one is executed when a post request is passed through to this route (/reader) from a form on our case
 app.get("/reader", function (req, res) {
-  let cookie = req.cookies["Information"];
-  let readingFinished = cookie.finished;
-  if (!readingFinished) {
-    let textIndex = cookie.index;
-    let textNr = cookie.texts[textIndex].text;
-    let inputText = textArray[textNr] // Text we are reading at the moment
-    let automatic = cookie.texts[textIndex].automaticSpeed;
-    let formNr = cookie.texts[textIndex].form;
+  let { textOrder, index, finished } = req.cookies["Information"];
 
-    let arrayOfWords = inputText.split(" "); //creates an array with all the words from the user text
-
-    let speed = 300;
-    if (automatic) {
-      let textComplexityScore = Math.round(
-        textMethods.calculateComplexityScore(inputText)
-      );
-      speed = textMethods.interpolate(textComplexityScore);
-      console.log(
-        "Complexity Score = " +
-          textComplexityScore +
-          "\nAutomated Speed = " +
-          speed
-      );
-    }
-
-    res.render("reader", {
-      arrayOfWords: arrayOfWords,
-      speed: speed,
-      form: formNr,
-    }); //renders  reader.ejs and passes an array with the name arrayOfWords to the file
-  } else {
-    res.render("finished");
+  if (finished) {
+    return res.render("finished");
   }
+
+  let textEntry = texts[textOrder[index]];
+  let { automaticSpeed, text: inputText } = textEntry;
+
+  let arrayOfWords = inputText.split(" "); //creates an array with all the words from the user text
+
+  let speed = 300;
+  if (automaticSpeed) {
+    let textComplexityScore = Math.round(
+      textMethods.calculateComplexityScore(inputText)
+    );
+    speed = textMethods.interpolate(textComplexityScore);
+    console.log(
+      `Complexity Score = ${textComplexityScore}\n` +
+        `AutomatedSpeed = ${speed}`
+    );
+  }
+
+  //renders  reader.ejs and passes an array with the name arrayOfWords to the file
+  res.render("reader", { arrayOfWords, speed });
 });
 
-app.get("/form/:formNr", function (req, res) {
-  let formNr = req.params.formNr;
-  let countFaster = req.query.cf;
-  let countSlower = req.query.cs;
-  let countPauses = req.query.cp;
-  let time = req.query.t;
+app.get("/form", function (req, res) {
+  let { textOrder, index } = req.cookies["Information"];
+  let id = textOrder[index];
+  let textEntry = texts[id];
 
-  res.render("forms/form" + formNr, {
-    formNr: formNr,
-    countFaster: countFaster,
-    countSlower: countSlower,
-    time: time,
-    countPauses: countPauses,
+  let {
+    cf: countFaster,
+    cs: countSlower,
+    cp: countPauses,
+    t: time,
+  } = req.query;
+  let formNr = req.params.formNr;
+
+  res.render("form", {
+    question: textEntry.question,
+    id,
+    countFaster,
+    countSlower,
+    time,
+    countPauses,
   });
 });
 
 app.post("/formHandler", function (req, res) {
-  /*
-      Work with form data
-
-  */
-  let passage = req.body.formNr;
-  let countFaster = req.body.countFaster;
-  let countSlower = req.body.countSlower;
-  let countPauses = req.body.countPauses;
-  let time = req.body.time;
-  let answer = req.body.question;
+  // extract form data
+  let {
+    id,
+    countFaster,
+    countSlower,
+    countPauses,
+    time,
+    question: answer,
+  } = req.body;
 
   database.saveFormData({
-    passage: passage,
-    answer: answer,
+    passage: id,
+    answer,
     reading_duration: time,
     interactions: {
       slower: countSlower,
@@ -130,31 +115,32 @@ app.post("/formHandler", function (req, res) {
     },
   });
 
-  let cookie = req.cookies["Information"];
-  let index = cookie.index + 1;
-  let array = cookie.texts;
-  let finished = cookie.finished;
+  let { index, textOrder } = req.cookies["Information"];
+  index++; // mark this text passage as completed
 
-  let textsLength = array.length;
-  if (index >= textsLength) {
-    finished = true;
+  if (index >= texts.length) {
     res.cookie("Information", {
-      texts: array,
-      index: index,
-      finished: finished,
+      textOrder,
+      index,
+      finished: true,
     });
     res.render("finished");
   } else {
     res.cookie("Information", {
-      texts: array,
-      index: index,
-      finished: finished,
+      textOrder,
+      index,
+      finished: false,
     });
     res.redirect("/reader");
   }
 });
 
+/**
+ * Shuffle the array *in place* and return it.
+ */
 function shuffle(array) {
+  // Fisher-Yates shuffle
+  // <https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle>
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * i);
     const temp = array[i];
