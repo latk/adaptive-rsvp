@@ -17,7 +17,12 @@ let texts = [
   { text: 2, form: 3, automaticSpeed: true },
   { text: 3, form: 4, automaticSpeed: true },
   { text: 4, form: 5, automaticSpeed: true },
-  { text: 5, form: 6, automaticSpeed: true },
+  { text: 5, form: 6, automaticSpeed: false },
+  { text: 6, form: 7, automaticSpeed: false },
+  { text: 7, form: 8, automaticSpeed: false },
+  { text: 8, form: 9, automaticSpeed: false },
+  { text: 9, form: 10, automaticSpeed: false },
+
 ]; // text shows the index on the text Array
 shuffle(texts);
 
