@@ -2,6 +2,7 @@
 
 <div class="mainReader">
   <h1 id="word"></h1>
+  <p id="message"></p>
 </div>
 
 <div class="slidecontainer">
@@ -21,21 +22,11 @@
 
 <a href="/" id="close"><i class="fas fa-times"></i></a>
 
-<script src="js/rsvp.js"></script>
-<script>
-  //passing words to rsvpModule
-  rsvpModule.init(<%- JSON.stringify(arrayOfWords) %>, <%= speed %>);
+<script type="module">
+  import { initializeUI } from "./js/rsvp.js";
 
-  function addData() {
-    let {
-      countFaster: cf,
-      countSlower: cs,
-      countPauses: cp,
-      time: t,
-    } = rsvpModule.getData();
-    let el = document.getElementById("nextButton");
-    el.setAttribute("href", `/form?cf=${cf}&cs=${cs}&cp=${cp}&t=${t}`);
-  }
+  //passing words to rsvp Module
+  initializeUI( <%- JSON.stringify(arrayOfWords) %>, <%= speed%>);
 </script>
 
 <%- include ("partials/footer.ejs") -%>
