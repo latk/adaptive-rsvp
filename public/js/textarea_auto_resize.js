@@ -4,7 +4,7 @@
  * @version 1.04
  */
 
-(function($){
+export function extendJqueryWithAutoResize($){
     
     $.fn.autoResize = function(options) {
         
@@ -90,7 +90,4 @@
         return this;
         
     };
-    $('textarea').autoResize();
-    
-    
-})(jQuery);
+}

@@ -5,6 +5,10 @@ integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifw
 crossorigin="anonymous"></script>
 <script src="https://kit.fontawesome.com/58f0d434f8.js" crossorigin="anonymous"></script>
 
-<script src="js/textarea_auto_resize.js"></script>
+<script type="module">
+ import { extendJqueryWithAutoResize } from './js/textarea_auto_resize.js';
+ extendJqueryWithAutoResize(jQuery);
+ $('textarea').autoResize();
+</script>
 </body>
 </html>
