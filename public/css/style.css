@@ -11,19 +11,34 @@ body {
  */
 
 /* Our Styling */
-.cover-heading
-{
+.cover-heading {
   margin-top: 8%;
 }
+
+.rsvp-container {
+    display: grid;
+    grid-template-rows: 3fr 3fr 2em;
+    grid-template-columns: 1fr;
+}
+
+.rsvp-word {
+    text-align: center;
+    font-size: 3.5rem;
+    font-weight: bolder;
+    align-self: end;
+}
+.rsvp-message {
+    align-self: start;
+}
+.rsvp-label {
+    align-self: center;
+}
+
 .mainReader {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
   min-height: 100vh;
   margin: 0 auto;
 }
+
 .evaluationForm{
   display: flex;
   flex-direction: column;
@@ -40,11 +55,6 @@ body {
 }
 .evaluationForm .lead {
   margin-top: 10%;
-}
-
-#word {
-  font-weight: bolder;
-  font-size: 3.5rem;
 }
 
 .slidecontainer,

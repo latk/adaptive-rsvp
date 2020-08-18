@@ -1,32 +1,61 @@
 <%- include("partials/header.ejs") -%>
 
-<div class="mainReader">
-  <h1 id="word"></h1>
-  <p id="message"></p>
-</div>
-
-<div class="slidecontainer">
-  <p id="wpmLabel">Words/minute:</p>
-  <p class="lead">
-    <a
-      href="/form"
-      class="btn btn-lg btn-secondary"
-      style="display: none;"
-      id="nextButton"
-      onmouseover="addData()"
-      >
-      NEXT
-    </a>
-  </p>
-</div>
+<div id="rsvp-container" class="mainReader"></div>
 
 <a href="/" id="close"><i class="fas fa-times"></i></a>
 
 <script type="module">
-  import { initializeUI } from "./js/rsvp.js";
+  import { RsvpUI } from "./js/rsvp.js";
 
+  const $container = document.getElementById('rsvp-container');
   //passing words to rsvp Module
-  initializeUI( <%- JSON.stringify(arrayOfWords) %>, <%= speed%>);
+  const tokens = <%- JSON.stringify(arrayOfWords) %>;
+  const defaultWpm = <%= speed %>;
+  const id = <%= id %>;
+
+  mountRSVP();
+
+  function mountRSVP() {
+    let ui = new RsvpUI({
+      tokens,
+      defaultWpm,
+      $container,
+      onComplete: (statistics) => {
+        ui.unmount();
+        mountEvaluation(statistics);
+      },
+    });
+  }
+
+  function mountEvaluation(statistics) {
+    const hiddenFields = Object.entries({...statistics, id})
+      .map(([key, value]) => `<input type="hidden" name="${key}" value="${value}">`)
+      .join("\n");
+
+    $container.outerHTML = `
+      <form method="post" action="/formHandler" class="evaluationForm">
+        ${hiddenFields}
+
+        <div>
+          <div class="answers">
+            <div>
+              <input type="radio" name="question" value="yes" required>
+              <label for="yes">Yes</label>
+            </div>
+            <div>
+              <input type="radio" name="question" value="no">
+              <label for="no">No</label><br>
+            </div>
+          </div>
+        </div>
+
+        <p class="lead">
+          <button type="submit" class="btn btn-lg btn-secondary">Submit</button>
+        </p>
+
+      </form>
+    `;
+  }
 </script>
 
 <%- include ("partials/footer.ejs") -%>

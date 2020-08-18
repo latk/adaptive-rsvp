@@ -193,67 +193,75 @@ export class RsvpModel {
   }
 }
 
-/**
- * connect existing DOM elements to a new RSVP model.
- *
- * Required elements: `#nextButton, #word, #wpmLabel, .mainReader`
- */
-export function initializeUI(tokens, wpm) {
-  let $nextButton = document.getElementById("nextButton");
-  $nextButton.style.display = "none";
+export class RsvpUI {
+  /**
+   * Initialize the RSVP UI in an existing `$container` DOM element.
+   *
+   * Remember to `unmount()` the UI afterwards.
+   *
+   * @param {object} args
+   * @param {string[]} args.tokens
+   * @param {number} args.defaultWpm
+   * @param {HTMLElement} args.$container where the reader should be mounted
+   * @param {({slower, faster, pause, forward, rewind, elapsedSeconds}) => void} args.onComplete
+   */
+  constructor({ tokens, defaultWpm, $container, onComplete }) {
+    // prepare the container
+    $container.classList.add("rsvp-container");
+    while ($container.firstChild) {
+      $container.removeChild($container.firstChild);
+    }
 
-  let $word = document.getElementById("word");
+    const addElem = (role) => {
+      const $el = document.createElement("div");
+      $el.classList.add(role);
+      $container.appendChild($el);
+      return $el;
+    };
 
-  let $wpmLabel = document.getElementById("wpmLabel");
+    const $word = addElem("rsvp-word");
+    const $message = addElem("rsvp-message");
+    const $wpmLabel = addElem("rsvp-label");
 
-  let $message = document.getElementById("message");
-  $message.textContent = "press SPACE to start";
+    $message.textContent = "press SPACE to start";
 
-  /** @type {HTMLElement} */
-  // @ts-ignore
-  let $mainReader = document.getElementsByClassName("mainReader")[0];
+    const rsvp = new RsvpModel({
+      tokens,
+      wpm: defaultWpm,
+      onNewToken: (word) => {
+        $word.textContent = word;
+      },
+      onComplete: (elapsedMS) => {
+        let elapsedSeconds = elapsedMS / 1000; // convert to seconds
+        onComplete({ elapsedSeconds, ...rsvp.counts });
+      },
+      onWpmChange: (wpm) => {
+        let delta = wpm - defaultWpm;
+        let label;
+        if (delta < 0) {
+          label = "" + delta;
+        } else if (delta > 0) {
+          label = `+${delta}`;
+        } else {
+          label = `±0`;
+        }
+        $wpmLabel.textContent = `Speed: ${label}`;
+      },
+    });
 
-  let rsvp = new RsvpModel({
-    tokens,
-    wpm,
-    onNewToken: (word) => {
-      $word.textContent = word;
-    },
-    onComplete: (elapsedMS) => {
-      let time = Math.round(elapsedMS / 1000); // convert to seconds
+    function updateMessage(isPlaying) {
+      $message.textContent = isPlaying ? "" : "press SPACE to resume";
+    }
 
-      let {
-        slower: cs,
-        faster: cf,
-        pause: cp,
-        forward: cff,
-        rewind: crr,
-      } = rsvp.counts;
+    //clicking on the word stops or resumes
+    const clickHandler = () => {
+      rsvp.toggle();
+      updateMessage(rsvp.playing);
+    };
 
-      $nextButton.style.display = "block";
-      $nextButton.setAttribute(
-        "href",
-        `/form?cf=${cf}&cs=${cs}&cp=${cp}&cff=${cff}&crr=${crr}&t=${time}`
-      );
-    },
-    onWpmChange: (wpm) => {
-      $wpmLabel.textContent = `words/minute: ${wpm} wpm`;
-    },
-  });
-
-  function updateMessage(isPlaying) {
-    $message.textContent = isPlaying ? "" : "press SPACE to resume";
-  }
-
-  //clicking on the word stops or resumes
-  $mainReader.onclick = function () {
-    rsvp.toggle();
-    updateMessage(rsvp.playing);
-  };
-
-  // support keyboard controls
-  document.onkeydown = function (event) {
-    switch (event.key) {
+    // support keyboard controls
+    const keyboardHandler = (event) => {
+      switch (event.key) {
       case "ArrowUp":
         rsvp.faster();
         break;
@@ -270,6 +278,20 @@ export function initializeUI(tokens, wpm) {
       case "ArrowRight":
         rsvp.forward();
         break;
-    }
-  };
+      }
+    };
+
+    // mount event listeners
+    $container.addEventListener('click', clickHandler);
+    document.addEventListener('keydown', keyboardHandler);
+
+    this.unmount = () => {
+      document.removeEventListener('keydown', keyboardHandler);
+      $container.removeEventListener('click', clickHandler);
+      $container.removeChild($wpmLabel);
+      $container.removeChild($message);
+      $container.removeChild($word);
+      $container.classList.remove("rsvp-container");
+    };
+  }
 }

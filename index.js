@@ -42,21 +42,28 @@ app.get("/about", function (req, res) {
 
 //this one is executed when a post request is passed through to this route (/reader) from a form on our case
 app.get("/reader", function (req, res) {
-  let { textOrder, index, finished } = req.cookies["Information"];
+  let state = req.cookies["Information"];
+  if (!state) {
+    return res.redirect('/');
+  }
+  let { textOrder, index, finished } = state;
 
   if (finished) {
     return res.render("finished");
   }
 
-  let textEntry = texts[textOrder[index]];
+  let textId = textOrder[index];
+  let textEntry = texts[textId];
   let {
     automaticSpeed,
     text: inputText,
     speed: speedBasedOnComplexity,
     score: textComplexityScore,
+    question,
   } = textEntry;
 
-  let arrayOfWords = inputText.split(" "); //creates an array with all the words from the user text
+  //creates an array with all the words from the user text
+  let arrayOfWords = `${inputText} Question: ${question}`.split(" ");
 
   let speed = 300;
   if (automaticSpeed) {
@@ -68,29 +75,10 @@ app.get("/reader", function (req, res) {
   }
 
   //renders  reader.ejs and passes an array with the name arrayOfWords to the file
-  res.render("reader", { arrayOfWords, speed });
-});
-
-app.get("/form", function (req, res) {
-  let { textOrder, index } = req.cookies["Information"];
-  let id = textOrder[index];
-  let textEntry = texts[id];
-
-  let {
-    cf: countFaster,
-    cs: countSlower,
-    cp: countPauses,
-    t: time,
-  } = req.query;
-  let formNr = req.params.formNr;
-
-  res.render("form", {
-    question: textEntry.question,
-    id,
-    countFaster,
-    countSlower,
-    time,
-    countPauses,
+  res.render("reader", {
+    arrayOfWords,
+    speed,
+    id: textId,
   });
 });
 
@@ -98,10 +86,12 @@ app.post("/formHandler", function (req, res) {
   // extract form data
   let {
     id,
-    countFaster,
-    countSlower,
-    countPauses,
-    time,
+    faster,
+    slower,
+    pause: pauses,
+    forward,
+    rewind,
+    elapsedSeconds: time,
     question: answer,
   } = req.body;
 
@@ -110,9 +100,11 @@ app.post("/formHandler", function (req, res) {
     answer,
     reading_duration: time,
     interactions: {
-      slower: countSlower,
-      faster: countFaster,
-      pauses: countPauses,
+      slower,
+      faster,
+      pauses,
+      forward,
+      rewind,
     },
   });
 
