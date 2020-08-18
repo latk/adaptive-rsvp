@@ -6,7 +6,6 @@ const app = express();
 
 const database = require("./database");
 let { texts } = require("./texts");
-let textMethods = require("./textMethods");
 
 app.use(cookieParser()); // To access cookies quickly
 
@@ -50,18 +49,20 @@ app.get("/reader", function (req, res) {
   }
 
   let textEntry = texts[textOrder[index]];
-  let { automaticSpeed, text: inputText } = textEntry;
+  let {
+    automaticSpeed,
+    text: inputText,
+    speed: speedBasedOnComplexity,
+    score: textComplexityScore,
+  } = textEntry;
 
   let arrayOfWords = inputText.split(" "); //creates an array with all the words from the user text
 
   let speed = 300;
   if (automaticSpeed) {
-    let textComplexityScore = Math.round(
-      textMethods.calculateComplexityScore(inputText)
-    );
-    speed = textMethods.interpolate(textComplexityScore);
+    speed = Math.round(speedBasedOnComplexity);
     console.log(
-      `Complexity Score = ${textComplexityScore}\n` +
+      `Complexity Score = ${Math.round(textComplexityScore)}\n` +
         `AutomatedSpeed = ${speed}`
     );
   }

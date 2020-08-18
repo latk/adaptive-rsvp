@@ -1,75 +1,60 @@
 const syll = require("syllable");
 
-function interpolate(score) {
-    let couples = [
-      [0, 100],
-      [15, 150],
-      [25, 200],
-      [35, 250],
-      [45, 300],
-      [55, 350],
-      [65, 400],
-      [75, 500],
-      [85, 600],
-      [95, 675],
-      [100, 700],
-    ];
-  
-    let i, j, x;
-    if (score >= 95) {
-      i = 10;
-    } else if (score >= 85 && score < 95) {
-      i = 9;
-    } else if (score >= 75 && score < 85) {
-      i = 8;
-    } else if (score >= 65 && score < 75) {
-      i = 7;
-    } else if (score >= 55 && score < 65) {
-      i = 6;
-    } else if (score >= 45 && score < 55) {
-      i = 5;
-    } else if (score >= 35 && score < 45) {
-      i = 4;
-    } else if (score >= 25 && score < 35) {
-      i = 3;
-    } else if (score >= 15 && score < 25) {
-      i = 2;
-    } else {
-      i = 1;
+function interpolateScoreToSpeed(score) {
+  // the couples are pairs with [score, speed]
+  let couples = [
+    [0, 100],
+    [15, 150],
+    [65, 400],
+    [75, 500],
+    [85, 600],
+    [95, 675],
+    [100, 700],
+  ];
+
+  // handle very small scores
+  let [minScore, minSpeed] = couples[0];
+  if (score < minScore) return minSpeed;
+
+  // see whether the score falls between any of the couples
+  for (let i = 0; i < couples.length - 1; i++) {
+    let [currScore, currSpeed] = couples[i];
+    let [nextScore, nextSpeed] = couples[i + 1];
+    if (currScore <= score && score < nextScore) {
+      let deltaSpeed = nextSpeed - currSpeed;
+      let deltaScore = nextScore - currScore;
+      return deltaSpeed * (score - currScore) / deltaScore + currSpeed;
     }
-    j = i - 1;
-  
-    firstSpeed = couples[i][1];
-    secondSpeed = couples[j][1];
-    firstScore = couples[i][0];
-    secondScore = couples[j][0];
-  
-    x =
-      ((firstSpeed - secondSpeed) * (score - secondScore)) /
-        (firstScore - secondScore) +
-      secondSpeed;
-  
-    return x;
-  }
-  
-  function calculateComplexityScore(text) {
-    let arrayOfWords = text.split(" ");
-    nrOfWords = arrayOfWords.length;
-    const re = /[.!?]/;
-    const nrOfSentences = text.split(re).length - 1;
-    let nrOfSyllables = 0;
-  
-    arrayOfWords.forEach(function (word) {
-      let s = syll(word);
-      nrOfSyllables = nrOfSyllables + s;
-    });
-  
-    let asl = nrOfWords / nrOfSentences;
-    let asw = nrOfSyllables / nrOfWords;
-  
-    let score = 206.835 - 1.015 * asl - 84.6 * asw;
-    return score;
   }
 
+  // if no score matched until now, it's an even larger score
+  let [, maxSpeed] = couples[couples.length - 1];
+  return maxSpeed;
+}
 
-  module.exports = {interpolate: interpolate, calculateComplexityScore: calculateComplexityScore};
+function calculateComplexityScore(text) {
+  let arrayOfWords = text.split(" ");
+  let nrOfWords = arrayOfWords.length;
+
+  // Sentences are delimited by .!? marks
+  // that are NOT followed by a word character.
+  const re = /[.!?](?!\w)/;
+  const nrOfSentences = text.split(re).length - 1;
+
+  // Count the syllables in the text.
+  let nrOfSyllables = 0;
+  arrayOfWords.forEach((word) => {
+    nrOfSyllables += syll(word);
+  });
+
+  let asl = nrOfWords / nrOfSentences;
+  let asw = nrOfSyllables / nrOfWords;
+
+  let score = 206.835 - 1.015 * asl - 84.6 * asw;
+  return score;
+}
+
+module.exports = {
+  interpolate: interpolateScoreToSpeed,
+  calculateComplexityScore,
+};
