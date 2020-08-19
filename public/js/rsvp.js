@@ -203,7 +203,7 @@ export class RsvpUI {
    * @param {string[]} args.tokens
    * @param {number} args.defaultWpm
    * @param {HTMLElement} args.$container where the reader should be mounted
-   * @param {({slower, faster, pause, forward, rewind, elapsedSeconds}) => void} args.onComplete
+   * @param {({slower, faster, pause, forward, rewind, elapsedSeconds, speed}) => void} args.onComplete
    */
   constructor({ tokens, defaultWpm, $container, onComplete }) {
     // prepare the container
@@ -233,7 +233,8 @@ export class RsvpUI {
       },
       onComplete: (elapsedMS) => {
         let elapsedSeconds = elapsedMS / 1000; // convert to seconds
-        onComplete({ elapsedSeconds, ...rsvp.counts });
+        let speed = rsvp.wpm;
+        onComplete({ elapsedSeconds, speed, ...rsvp.counts });
       },
       onWpmChange: (wpm) => {
         let delta = wpm - defaultWpm;

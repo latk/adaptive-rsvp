@@ -1,3 +1,4 @@
+// @ts-check
 const express = require("express");
 const bodyParser = require("body-parser");
 var cookieParser = require("cookie-parser");
@@ -16,23 +17,89 @@ app.use(
   })
 );
 //Shows app where to see for static content(Css,images etc)
+// @ts-ignore
 app.use(express.static(__dirname + "/public"));
 
 //Sets the view engine to EJS which makes data exchanging through back-end and front-end a lot easier.
 app.set("view engine", "ejs");
 
+/**
+ * The stored state & state transitions that are managed via a cookie.
+ */
+class UserState {
+  constructor(stateCookie) {
+    const {
+      textOrder = null,
+      index = 0,
+      finished = false,
+      speed = 300,
+    } = stateCookie || {};
+
+    /**
+     * the order of text snippets
+     * @type {null | number[]}
+     */
+    // @ts-ignore
+    this.textOrder = textOrder;
+
+    /**
+     * the number of the next text snippet to be read
+     * @type {number}
+     */
+    this.index = index;
+
+    /**
+     * whether the evaluation has been completed
+     * @type {boolean}
+     */
+    this.finished = finished;
+
+    /**
+     * the last speed that was manually selected
+     */
+    this.speed = speed;
+  }
+
+  /**
+   * map the user state to a cookie value
+   * @returns {object}
+   */
+  toCookie() {
+    let { textOrder, index, finished, speed } = this;
+    return { textOrder, index, finished, speed };
+  }
+
+  currentText() {
+    if (!this.textOrder) return null;
+    if (this.finished) return null;
+    return texts[this.textOrder[this.index]];
+  }
+
+  reset() {
+    // @ts-ignore
+    this.textOrder = shuffle([...texts.keys()]);
+    this.index = 0;
+    this.finished = false;
+    this.speed = 300;
+  }
+
+  nextText() {
+    if (!this.textOrder) return;
+    this.index++;
+    if (this.index >= this.textOrder.length) this.finished = true;
+  }
+}
+
 //Main route, this function is executed when the user goes on the main URL (In our case localhost:3000)
 app.get("/", function (req, res) {
+  const state = new UserState(req.cookies["Information"]);
+  state.reset();
+
   // Creates Cookie With all data inside
-  const textOrder = shuffle([...Array(texts.length).keys()]);
-  res.cookie("Information", {
-    textOrder, // the order of text snippets
-    index: 0, // at which text we currently are
-    finished: false, // whether all texts have been completed
-  });
+  res.cookie("Information", state.toCookie());
 
   //When the user goes on / then render the main.ejs file(found on views.)
-  res.render("main", { initText: texts[textOrder[0]].text });
+  res.render("main", { initText: state.currentText().text });
 });
 
 //same logic for /about
@@ -42,18 +109,15 @@ app.get("/about", function (req, res) {
 
 //this one is executed when a post request is passed through to this route (/reader) from a form on our case
 app.get("/reader", function (req, res) {
-  let state = req.cookies["Information"];
-  if (!state) {
-    return res.redirect('/');
-  }
-  let { textOrder, index, finished } = state;
+  const state = new UserState(req.cookies["Information"]);
 
-  if (finished) {
-    return res.render("finished");
-  }
+  if (state.finished) return res.render("finished");
 
-  let textId = textOrder[index];
-  let textEntry = texts[textId];
+  const textEntry = state.currentText();
+  if (!textEntry) return res.redirect("/");
+
+  let speed = state.speed;
+
   let {
     automaticSpeed,
     text: inputText,
@@ -65,7 +129,6 @@ app.get("/reader", function (req, res) {
   //creates an array with all the words from the user text
   let arrayOfWords = `${inputText} Question: ${question}`.split(" ");
 
-  let speed = 300;
   if (automaticSpeed) {
     speed = Math.round(speedBasedOnComplexity);
     console.log(
@@ -78,7 +141,7 @@ app.get("/reader", function (req, res) {
   res.render("reader", {
     arrayOfWords,
     speed,
-    id: textId,
+    id: state.index,
   });
 });
 
@@ -92,6 +155,7 @@ app.post("/formHandler", function (req, res) {
     forward,
     rewind,
     elapsedSeconds: time,
+    speed: lastSpeed,
     question: answer,
   } = req.body;
 
@@ -108,22 +172,17 @@ app.post("/formHandler", function (req, res) {
     },
   });
 
-  let { index, textOrder } = req.cookies["Information"];
-  index++; // mark this text passage as completed
+  const state = new UserState(req.cookies["Information"]);
+  state.nextText(); // mark this text passage as completed
 
-  if (index >= texts.length) {
-    res.cookie("Information", {
-      textOrder,
-      index,
-      finished: true,
-    });
+  // was a new speed manually selected?
+  if (faster || slower) state.speed = lastSpeed;
+
+  res.cookie("Information", state.toCookie());
+
+  if (state.finished) {
     res.render("finished");
   } else {
-    res.cookie("Information", {
-      textOrder,
-      index,
-      finished: false,
-    });
     res.redirect("/reader");
   }
 });
