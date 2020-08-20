@@ -23,6 +23,13 @@ app.use(express.static(__dirname + "/public"));
 //Sets the view engine to EJS which makes data exchanging through back-end and front-end a lot easier.
 app.set("view engine", "ejs");
 
+// Log any requests
+app.use((req, res, next) => {
+  const timestamp = new Date().toISOString();
+  console.log(`[${timestamp}] ${req.method} ${req.path}`);
+  next();
+});
+
 /**
  * The stored state & state transitions that are managed via a cookie.
  */
@@ -105,6 +112,18 @@ app.get("/", function (req, res) {
 //same logic for /about
 app.get("/about", function (req, res) {
   res.render("about");
+});
+
+app.get("/tutorial-1", (req, res) => {
+  res.render("tutorial-1");
+});
+
+app.get("/tutorial-2", (req, res) => {
+  res.render("tutorial-2");
+});
+
+app.get("/tutorial-3", (req, res) => {
+  res.render("tutorial-3");
 });
 
 //this one is executed when a post request is passed through to this route (/reader) from a form on our case

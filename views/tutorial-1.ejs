@@ -1,0 +1,58 @@
+<%- include("partials/header.ejs") -%>
+
+<div class="tutorial">
+
+  <div class="tutorial-explanation">
+    <h1>Tutorial</h1>
+    <p>
+      Rapid Serial Visual Presentation (RSVP)
+      is a speed reading method that shows single words of a text
+      one at a time.
+    </p>
+    <p>
+      To the right, you can see an RSVP demo.
+      Press the SPACE key to start.
+    </p>
+    <p>
+      The end of the text will be marked by a square.
+    </p>
+    <form method="GET" action="/tutorial-2">
+      <button id="reload-button" type="button">again</button>
+      <button id="next-button" type="submit" disabled>next</button>
+    </form>
+  </div>
+
+  <div class="tutorial-demo" id="rsvp-container"></div>
+
+</div>
+
+<script type="module">
+  import {RsvpUI} from "/js/rsvp.js";
+
+ const $container = document.getElementById('rsvp-container');
+ const $nextButton = document.getElementById('next-button');
+ const $reloadButton = document.getElementById('reload-button');
+ const text = "This is a text to give you an impression of the RSVP technique. " +
+              "The current speed is 200 words per minute. " +
+              "Can you follow along?";
+
+ let ui = null;
+ mountUI();
+
+ $reloadButton.addEventListener('click', () => mountUI());
+
+ function mountUI() {
+   if (ui) ui.unmount();
+
+   ui = new RsvpUI({
+     tokens: text.split(" "),
+     defaultWpm: 200,
+     $container,
+     onComplete: (statistics) => {
+       $nextButton.disabled = false;
+     },
+   });
+ }
+</script>
+
+<%- include("partials/footer.ejs") -%>

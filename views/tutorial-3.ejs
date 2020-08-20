@@ -1,0 +1,67 @@
+<%- include("partials/header.ejs") -%>
+
+<div class="tutorial">
+
+  <div class="tutorial-explanation">
+    <h1>Your tasks</h1>
+    <div id="example-text">
+      <p>
+        In the next section,
+        you will be shown a couple of text excerpts using RSVP.
+        Each text will end with a comprehension question
+        that can be answered with “yes” or “no”.
+      </p>
+      <p>
+        You can adjust the speed at any time.
+        Sometimes we will select the initial speed,
+        sometimes we will use your last speed.
+      </p>
+      <p>
+        You can go as fast or as slow as you like,
+        but every text will only be shown once.
+        Please pay attention so that you can answer the question.
+      </p>
+    </div>
+
+    <form method="GET" action="/reader">
+      <button id="reload-button" type="button">again</button>
+      <button id="next-button" type="submit" disabled>start</button>
+    </form>
+  </div>
+
+  <div class="tutorial-demo" id="rsvp-container"></div>
+
+</div>
+
+<script type="module">
+  import {RsvpUI} from "/js/rsvp.js";
+
+ const $container = document.getElementById('rsvp-container');
+ const $nextButton = document.getElementById('next-button');
+ const $reloadButton = document.getElementById('reload-button');
+ const text = document.getElementById('example-text')
+                      .textContent
+                      .replace(/\s+/g, ' ')
+                      .trim() +
+              " Question: are you ready to go?";
+
+ let ui = null;
+ mountUI();
+
+ $reloadButton.addEventListener('click', () => mountUI());
+
+ function mountUI() {
+   if (ui) ui.unmount();
+
+   ui = new RsvpUI({
+     tokens: text.split(" "),
+     defaultWpm: 300,
+     $container,
+     onComplete: (statistics) => {
+       $nextButton.disabled = false;
+     },
+   });
+ }
+</script>
+
+<%- include("partials/footer.ejs") -%>

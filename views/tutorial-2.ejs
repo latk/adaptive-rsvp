@@ -1,0 +1,67 @@
+<%- include("partials/header.ejs") -%>
+
+<div class="tutorial">
+
+  <div class="tutorial-explanation">
+    <h1>Different speeds</h1>
+    <p>
+      Different people like reading at different speeds.
+      The following text is shown at an above-average speed.
+    </p>
+    <p>You can change the speed at any time:</p>
+    <ul>
+      <li><kbd>&uparrow;</kbd> press the up arrow key to go faster</li>
+      <li><kbd>&downarrow;</kbd> press the down arrow key to slow down</li>
+    </ul>
+    <p>Additionally, you can pause and rewind:</p>
+    <ul>
+      <li><kbd>&emsp;&emsp;</kbd> press the SPACE bar to pause and resume</li>
+      <li><kbd>&leftarrow;</kbd> press the left arrow key to skip to the previous word</li>
+      <li><kbd>&rightarrow;</kbd> press the right arrow key to skip to the next word</li>
+    </ul>
+    <p>Try it out now!</p>
+    <form method="GET" action="/tutorial-3">
+      <button id="reload-button" type="button">again</button>
+      <button id="next-button" type="submit" disabled>next</button>
+    </form>
+  </div>
+
+  <div class="tutorial-demo" id="rsvp-container"></div>
+
+</div>
+
+<script type="module">
+  import {RsvpUI} from "/js/rsvp.js";
+
+ const $container = document.getElementById('rsvp-container');
+ const $nextButton = document.getElementById('next-button');
+ const $reloadButton = document.getElementById('reload-button');
+ const text = "This text is shown a lot faster. " +
+              "The four hundred words per minute are likely too fast. " +
+              "Try decreasing the speed with the down array key. " +
+              "Is this better? " +
+              "Then we can continue to the next step.";
+
+ let ui = null;
+ mountUI();
+
+ $reloadButton.addEventListener('click', () => {
+   $reloadButton.blur();
+   mountUI()
+ });
+
+ function mountUI() {
+   if (ui) ui.unmount();
+
+   ui = new RsvpUI({
+     tokens: text.split(" "),
+     defaultWpm: 400,
+     $container,
+     onComplete: (statistics) => {
+       $nextButton.disabled = false;
+     },
+   });
+ }
+</script>
+
+<%- include("partials/footer.ejs") -%>
