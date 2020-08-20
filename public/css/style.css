@@ -19,6 +19,7 @@ body {
     display: grid;
     grid-template-rows: 3fr 3fr 2em;
     grid-template-columns: 1fr;
+    cursor: pointer;
 }
 
 .rsvp-word {
@@ -54,6 +55,7 @@ body {
     overflow-y: auto;
     align-self: center;
     justify-self: center;
+    border-right: solid medium;
 }
 
 .tutorial-demo {
