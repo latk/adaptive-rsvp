@@ -1,0 +1,24 @@
+[Unit]
+Description=docker-compose adaptive-rsvp service
+Requires=docker.service network-online.target
+After=docker.service network-online.target
+
+[Service]
+WorkingDirectory=/opt/adaptive-rsvp
+Type=simple
+TimeoutStartSec=5min
+Restart=always
+
+Environment='COMPOSE_FILE=docker-compose.yml:docker-compose.production.yml'
+
+ExecStartPre=/usr/bin/docker-compose pull --quiet --parallel --ignore-pull-failures
+ExecStartPre=/usr/bin/docker-compose build
+
+ExecStart=/usr/bin/docker-compose up --remove-orphans
+
+ExecStop=/usr/bin/docker-compose down --remove-orphans
+
+ExecReload=/usr/bin/docker-compose restart
+
+[Install]
+WantedBy=multi-user.target
