@@ -38,46 +38,46 @@ app.get("/", function (req, res) {
 
 /**
  * The stored state & state transitions that are managed via a cookie.
+ *
+ * States:
+ * * null: initial state
+ * * tutorial: user has given consent and is now in tutorial
+ * * reading: user is in the phase where they read text snippets
+ * * finished: user has completed the experiment
+ *
+ * @typedef {null | 'tutorial' | 'reading' | 'finished'} State
  */
 class UserState {
-  constructor(stateCookie) {
-    const {
-      consent = false,
-      textOrder = null,
-      index = 0,
-      finished = false,
-      speed = 300,
-    } = stateCookie || {};
+  constructor() {
+    /**
+     * the user ID
+     * @type {string}
+     */
+    this.uid = [Date.now(), 0 | (1e6 * Math.random())].join(".");
 
     /**
-     * whether consent to the study has been provided
-     * @type {boolean}
+     * the state of this user
+     * @type {State}
      */
-    this.consent = consent;
+    this.state = null;
 
     /**
      * the order of text snippets
-     * @type {null | number[]}
+     * @type {number[]}
      */
     // @ts-ignore
-    this.textOrder = textOrder;
+    this.textOrder = shuffle([...texts.keys()]);
 
     /**
      * the number of the next text snippet to be read
      * @type {number}
      */
-    this.index = index;
-
-    /**
-     * whether the evaluation has been completed
-     * @type {boolean}
-     */
-    this.finished = finished;
+    this.index = 0;
 
     /**
      * the last speed that was manually selected
      */
-    this.speed = speed;
+    this.speed = 300;
   }
 
   /**
@@ -85,42 +85,61 @@ class UserState {
    * @returns {object}
    */
   toCookie() {
-    let { consent, textOrder, index, finished, speed } = this;
-    return { consent, textOrder, index, finished, speed };
+    let { uid, state, textOrder, index, speed } = this;
+    return { uid, state, textOrder, index, speed };
+  }
+
+  /**
+   * hydrate the state from a cookie value
+   * @param {object} cookie
+   */
+  fromCookie(cookie) {
+    this.uid = cookie.uid || this.uid;
+    this.state = cookie.state || this.state;
+    this.textOrder = cookie.textOrder || this.textOrder;
+    this.index = cookie.index || this.index;
+    this.speed = cookie.speed || this.speed;
   }
 
   currentText() {
-    if (!this.textOrder) return null;
-    if (this.finished) return null;
+    if (this.state !== "reading") return null;
     return texts[this.textOrder[this.index]];
   }
 
-  reset() {
-    this.consent = false;
-    // @ts-ignore
-    this.textOrder = shuffle([...texts.keys()]);
-    this.index = 0;
-    this.finished = false;
-    this.speed = 300;
-  }
-
   nextText() {
-    if (!this.textOrder) return;
     this.index++;
-    if (this.index >= this.textOrder.length) this.finished = true;
+    if (this.index >= this.textOrder.length) this.state = "finished";
   }
 }
 
-// state assertions that guard some of the below routes
+/** state assertions that guard some of the below routes.
+ * Certain states force a particular route.
+ * @type {() => (req, res, next) => any}
+ */
+const ensureState = () => (req, res, next) => {
+  const state = (req.state = new UserState());
+  state.fromCookie(req.cookies["Information"]);
 
-const requireConsent = (req, res, next) => {
-  const state = new UserState(req.cookies["Information"]);
-  if (!state.consent) {
+  // no state? Get consent.
+  if (state.state === null && req.path !== "/consent")
     return res.redirect("/consent");
-  }
-  next();
+
+  // tutorial?
+  if (state.state === "tutorial" && !req.path.startsWith("/tutorial/"))
+    return res.redirect("/tutorial/1");
+
+  // reading?
+  if (state.state === "reading" && req.path !== "/text-snippet")
+    return res.redirect("/text-snippet");
+
+  // finished? Really stay finished.
+  if (state.state === "finished" && req.path !== "/finished")
+    return res.redirect("/finished");
+
+  return next();
 };
 
+// no preconditions, can always start anew
 app.get("/consent", (req, res) => {
   res.render("consent");
 });
@@ -131,33 +150,42 @@ app.post("/consent", (req, res) => {
     return res.redirect("/consent");
   }
 
+  // the user has given consent, so initialize the state
   const state = new UserState();
-  state.reset();
-  state.consent = true;
+  state.state = "tutorial";
   res.cookie("Information", state.toCookie());
-  return res.redirect("/tutorial-1");
+  return res.redirect("/tutorial/1");
 });
 
-app.get("/tutorial-1", requireConsent, (req, res) => {
+app.get("/tutorial/1", ensureState(), (req, res) => {
   res.render("tutorial-1");
 });
 
-app.get("/tutorial-2", requireConsent, (req, res) => {
+app.get("/tutorial/2", ensureState(), (req, res) => {
   res.render("tutorial-2");
 });
 
-app.get("/tutorial-3", requireConsent, (req, res) => {
+app.get("/tutorial/3", ensureState(), (req, res) => {
   res.render("tutorial-3");
 });
 
-//this one is executed when a post request is passed through to this route (/reader) from a form on our case
-app.get("/reader", requireConsent, function (req, res) {
-  const state = new UserState(req.cookies["Information"]);
+app.post("/tutorial/done", ensureState(), (req, res) => {
+  /** @type {UserState} */
+  const state = req.state;
 
-  if (state.finished) return res.render("finished");
+  state.state = "reading";
+  res.cookie("Information", state.toCookie());
+  return res.redirect("/text-snippet");
+});
+
+// This route contains the main evaluation:
+// first show one of the text snippets with RSVP,
+// then ask the comprehension question.
+app.get("/text-snippet", ensureState(), function (req, res) {
+  /** @type {UserState} */
+  const state = req.state;
 
   const textEntry = state.currentText();
-  if (!textEntry) return res.redirect("/");
 
   let speed = state.speed;
 
@@ -180,27 +208,34 @@ app.get("/reader", requireConsent, function (req, res) {
     );
   }
 
-  //renders  reader.ejs and passes an array with the name arrayOfWords to the file
-  res.render("reader", {
+  //renders  text-snippet.ejs and passes an array with the name arrayOfWords to the file
+  res.render("text-snippet", {
     arrayOfWords,
     speed,
     id: state.index,
   });
 });
 
-app.post("/formHandler", requireConsent, function (req, res) {
+app.post("/text-snippet", ensureState(), function (req, res) {
+  /** @type {UserState} */
+  const state = req.state;
+
   // extract form data
-  let {
-    id,
-    faster,
-    slower,
-    pause: pauses,
-    forward,
-    rewind,
-    elapsedSeconds: time,
-    speed: lastSpeed,
-    question: answer,
-  } = req.body;
+  try {
+    var {
+      id,
+      faster,
+      slower,
+      pause: pauses,
+      forward,
+      rewind,
+      elapsedSeconds: time,
+      speed: lastSpeed,
+      question: answer,
+    } = req.body;
+  } catch (TypeError) {
+    return res.sendStatus(400);
+  }
 
   database.saveFormData({
     passage: id,
@@ -215,7 +250,6 @@ app.post("/formHandler", requireConsent, function (req, res) {
     },
   });
 
-  const state = new UserState(req.cookies["Information"]);
   state.nextText(); // mark this text passage as completed
 
   // was a new speed manually selected?
@@ -223,11 +257,12 @@ app.post("/formHandler", requireConsent, function (req, res) {
 
   res.cookie("Information", state.toCookie());
 
-  if (state.finished) {
-    res.render("finished");
-  } else {
-    res.redirect("/reader");
-  }
+  // go to next text snippet, or to finished page
+  res.redirect("/text-snippet");
+});
+
+app.get("/finished", ensureState(), (req, res) => {
+  return res.render("finished");
 });
 
 /**
