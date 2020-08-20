@@ -4,48 +4,38 @@
   <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
     <header class="masthead mb-auto">
       <div class="inner">
-        <h3 class="masthead-brand"><a href="/">RSVP Improved </a></h3>
+        <h3 class="masthead-brand"><a href="/">Adaptive RSVP</a></h3>
         <nav class="nav nav-masthead justify-content-center">
           <a class="nav-link active" href="/">Home</a>
-          <a class="nav-link" href="/about">About Us</a>
+          <a class="nav-link" href="/consent">Online Study</a>
         </nav>
       </div>
     </header>
 
     <main role="main" class="inner cover">
-      <h1 class="cover-heading">Read a text with RSVP !</h1>
-
-      <form >
-        <div class="form-group">
-          <!-- This inputText is what we work upon on the index.js file-->
-        <textarea class="form-control" id="inputText" name="inputText" placeholder="Once upon a time there was..." rows="10" readonly></textarea>
-        </div>
-        <p class="lead">
-          <a  href="/tutorial-1"class="btn btn-lg btn-secondary">Start Reading</a>
-        </p>
-        <p >
-            <br>
-            This experiment will help us to understand if automatically choosing the speed parameter for RSVP reading via our method is 
-            the right approach.
-            A text will be displayed using Rapid Serial Visual Presentation.Try to understand as much information
-            as possible. At the end of the reading session, you will be asked few questions regarding the corresponding text.
-            This will help us to measure your comprehensibility while using RSVP.
-            <br>Thank you.
-        </p>
-        <h3 class="cover-heading">Instructions: </h3>
-        <p class="lead">
-          Click on the word to <i>pause/play</i> or <i>spacebar</i>, <i>use left and right arrows</i> to stop and go backwards or forwards. If you
-          find the presentation too fast/slow, use the <i>arrow keys (up/down)</i> to manually adjust it.
-        </p>
-
-      </form>
-
-
+      <h1 class="cover-heading">Participate in our online study!</h1>
+      <p>
+        We are conducting an online study on Rapid Serial Visual Presentation (RSVP),
+        a speed-reading technique.
+        We want to understand the effect of certain speed settings.
+      </p>
+      <p>
+        Please contribute by taking the short study.
+        All you need is a computer with a keyboard,
+        and 10 to 15 minutes:
+      </p>
+      <p class="lead">
+        <a href="/consent" class="btn btn-lg btn-secondary">go to online study</a>
+      </p>
+      <p>
+        Thank you!
+      </p>
     </main>
 
     <footer class="mastfoot mt-auto">
       <div class="inner">
-        <p>HIS Frankfurt</p>
+        <p>This study is part of a HIS and AI student project<br>
+          at Frankfurt University of Applied Sciences.</p>
       </div>
     </footer>
   </div>
@@ -53,12 +43,5 @@
 
   </div>
 </div>
-
-<script>
-   let inputText = "<%= initText %>";
-
-  document.getElementById("inputText").value = inputText;
-
-</script>
 
 <%- include ("partials/footer.ejs") -%>

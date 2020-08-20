@@ -30,17 +30,30 @@ app.use((req, res, next) => {
   next();
 });
 
+//Main route, this function is executed when the user goes on the main URL (In our case localhost:3000)
+app.get("/", function (req, res) {
+  //When the user goes on / then render the main.ejs file(found on views.)
+  res.render("main");
+});
+
 /**
  * The stored state & state transitions that are managed via a cookie.
  */
 class UserState {
   constructor(stateCookie) {
     const {
+      consent = false,
       textOrder = null,
       index = 0,
       finished = false,
       speed = 300,
     } = stateCookie || {};
+
+    /**
+     * whether consent to the study has been provided
+     * @type {boolean}
+     */
+    this.consent = consent;
 
     /**
      * the order of text snippets
@@ -72,8 +85,8 @@ class UserState {
    * @returns {object}
    */
   toCookie() {
-    let { textOrder, index, finished, speed } = this;
-    return { textOrder, index, finished, speed };
+    let { consent, textOrder, index, finished, speed } = this;
+    return { consent, textOrder, index, finished, speed };
   }
 
   currentText() {
@@ -83,6 +96,7 @@ class UserState {
   }
 
   reset() {
+    this.consent = false;
     // @ts-ignore
     this.textOrder = shuffle([...texts.keys()]);
     this.index = 0;
@@ -97,37 +111,47 @@ class UserState {
   }
 }
 
-//Main route, this function is executed when the user goes on the main URL (In our case localhost:3000)
-app.get("/", function (req, res) {
+// state assertions that guard some of the below routes
+
+const requireConsent = (req, res, next) => {
   const state = new UserState(req.cookies["Information"]);
+  if (!state.consent) {
+    return res.redirect("/consent");
+  }
+  next();
+};
+
+app.get("/consent", (req, res) => {
+  res.render("consent");
+});
+
+app.post("/consent", (req, res) => {
+  const consent = req.body.consent;
+  if (consent !== "on") {
+    return res.redirect("/consent");
+  }
+
+  const state = new UserState();
   state.reset();
-
-  // Creates Cookie With all data inside
+  state.consent = true;
   res.cookie("Information", state.toCookie());
-
-  //When the user goes on / then render the main.ejs file(found on views.)
-  res.render("main", { initText: state.currentText().text });
+  return res.redirect("/tutorial-1");
 });
 
-//same logic for /about
-app.get("/about", function (req, res) {
-  res.render("about");
-});
-
-app.get("/tutorial-1", (req, res) => {
+app.get("/tutorial-1", requireConsent, (req, res) => {
   res.render("tutorial-1");
 });
 
-app.get("/tutorial-2", (req, res) => {
+app.get("/tutorial-2", requireConsent, (req, res) => {
   res.render("tutorial-2");
 });
 
-app.get("/tutorial-3", (req, res) => {
+app.get("/tutorial-3", requireConsent, (req, res) => {
   res.render("tutorial-3");
 });
 
 //this one is executed when a post request is passed through to this route (/reader) from a form on our case
-app.get("/reader", function (req, res) {
+app.get("/reader", requireConsent, function (req, res) {
   const state = new UserState(req.cookies["Information"]);
 
   if (state.finished) return res.render("finished");
@@ -164,7 +188,7 @@ app.get("/reader", function (req, res) {
   });
 });
 
-app.post("/formHandler", function (req, res) {
+app.post("/formHandler", requireConsent, function (req, res) {
   // extract form data
   let {
     id,
