@@ -190,6 +190,10 @@ input[type="range"]:focus::-ms-fill-upper {
   background: #0d0d0d;
 }
 
+.alert {
+    text-shadow: none;
+}
+
 /*
  * Globals
  */

@@ -11,28 +11,88 @@ mongoose.connect(DATABASE, {
   useUnifiedTopology: true,
 }); // Online conection with my Mongo database online
 
-const formDataSchema = new mongoose.Schema({
+const answerSchema = new mongoose.Schema({
+  uid: String,
+  date: Date,
   passage: Number,
+  position: Number,
   answer: String,
-  reading_duration: Number,
-  interactions: { slower: Number, faster: Number, pauses: Number },
+  readingDuration: Number,
+  interactions: {
+    slower: Number,
+    faster: Number,
+    pause: Number,
+    forward: Number,
+    rewind: Number,
+  },
 });
 
-const formDataDB = new mongoose.model("answer", formDataSchema);
+const demographicSchema = new mongoose.Schema({
+  uid: String,
+  date: Date,
+  ageRange: String,
+  englishLevel: String,
+  vision: String,
+  source: String,
+  rsvpExperience: String,
+  device: String,
+  light: String,
+});
 
-/** data must have shape:
+const Answer = new mongoose.model("Answer", answerSchema);
+const Demographic = new mongoose.model("Demographic", demographicSchema);
+
+/** save an answer to the text snippet comprehension question, including interaction statistics
  *
- *  ```
- *  { passage,
- *    answer,
- *    reading_duration,
- *    interactions: { slower, faster, pauses } }
- * ```
+ * @param {object} answer
+ * @param {string} answer.uid
+ * @param {Date}   answer.date
+ * @param {number} answer.passage
+ * @param {number} answer.position
+ * @param {string} answer.answer (yes or no)
+ * @param {number} answer.readingDuration (in seconds)
+ * @param {object} answer.interactions
+ * @param {number} answer.interactions.slower
+ * @param {number} answer.interactions.faster
+ * @param {number} answer.interactions.pause
+ * @param {number} answer.interactions.forward
+ * @param {number} answer.interactions.rewind
  */
-function saveFormData(data) {
-    new formDataDB(data).save();
+async function saveAnswer(answer) {
+  await new Answer(answer).save();
+}
+
+async function getAllAnswers() {
+  const answers = await Answer.find({});
+  return answers.map((model) => ({ ...model }));
+}
+
+/**
+ * save demographic background data
+ *
+ * @param {object} demographic
+ * @param {string} demographic.uid;
+ * @param {Date}   demographic.date;
+ * @param {string} demographic.ageRange;
+ * @param {string} demographic.englishLevel;
+ * @param {string} demographic.vision;
+ * @param {string} demographic.source;
+ * @param {string} demographic.rsvpExperience;
+ * @param {string} demographic.device;
+ * @param {string} demographic.light;
+ */
+async function saveDemographic(demographic) {
+  await new Demographic(demographic).save();
+}
+
+async function getAllDemographics() {
+  const answers = await Demographic.find({});
+  return answers.map((model) => ({ ...model }));
 }
 
 module.exports = {
-    saveFormData,
+  saveAnswer,
+  getAllAnswers,
+  saveDemographic,
+  getAllDemographics,
 };

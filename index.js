@@ -41,11 +41,12 @@ app.get("/", function (req, res) {
  *
  * States:
  * * null: initial state
- * * tutorial: user has given consent and is now in tutorial
+ * * demographic: user has given consent and is now answering background questions
+ * * tutorial: user is now in tutorial
  * * reading: user is in the phase where they read text snippets
  * * finished: user has completed the experiment
  *
- * @typedef {null | 'tutorial' | 'reading' | 'finished'} State
+ * @typedef {null | 'demographic' | 'tutorial' | 'reading' | 'finished'} State
  */
 class UserState {
   constructor() {
@@ -121,8 +122,12 @@ const ensureState = () => (req, res, next) => {
   state.fromCookie(req.cookies["Information"]);
 
   // no state? Get consent.
-  if (state.state === null && req.path !== "/consent")
+  if (!state.state && req.path !== "/consent")
     return res.redirect("/consent");
+
+  // demographics?
+  if (state.state === "demographic" && req.path !== "/demographic")
+    return res.redirect("/demographic");
 
   // tutorial?
   if (state.state === "tutorial" && !req.path.startsWith("/tutorial/"))
@@ -152,9 +157,74 @@ app.post("/consent", (req, res) => {
 
   // the user has given consent, so initialize the state
   const state = new UserState();
+  state.state = "demographic";
+  res.cookie("Information", state.toCookie());
+  return res.redirect("/demographic");
+});
+
+const DEMOGRAPHIC_DEFAULT = {
+  message: null,
+  ageRange: null,
+  englishLevel: null,
+  vision: null,
+  source: null,
+  rsvpExperience: null,
+  device: null,
+  light: null,
+};
+
+app.get("/demographic", ensureState(), (req, res) => {
+  res.render("demographic", { ...DEMOGRAPHIC_DEFAULT });
+});
+
+app.post("/demographic", ensureState(), async (req, res) => {
+  /** @type {UserState} */
+  const state = req.state;
+
+  const params = { ...DEMOGRAPHIC_DEFAULT, ...req.body };
+
+  var {
+    ageRange,
+    englishLevel,
+    vision,
+    source,
+    rsvpExperience,
+    device,
+    light,
+  } = params;
+
+  if (
+    !ageRange ||
+    !englishLevel ||
+    !vision ||
+    !source ||
+    !rsvpExperience ||
+    !device ||
+    !light
+  ) {
+    res.status(400);
+    res.render("demographic", {
+      ...params,
+      message: "please answer all questions or select N/A.",
+    });
+    return;
+  }
+
+  await database.saveDemographic({
+    uid: state.uid,
+    date: new Date(),
+    ageRange,
+    englishLevel,
+    vision,
+    source,
+    rsvpExperience,
+    device,
+    light,
+  });
+
   state.state = "tutorial";
   res.cookie("Information", state.toCookie());
-  return res.redirect("/tutorial/1");
+  res.redirect("/tutorial/1");
 });
 
 app.get("/tutorial/1", ensureState(), (req, res) => {
@@ -216,7 +286,7 @@ app.get("/text-snippet", ensureState(), function (req, res) {
   });
 });
 
-app.post("/text-snippet", ensureState(), function (req, res) {
+app.post("/text-snippet", ensureState(), async (req, res) => {
   /** @type {UserState} */
   const state = req.state;
 
@@ -226,25 +296,29 @@ app.post("/text-snippet", ensureState(), function (req, res) {
       id,
       faster,
       slower,
-      pause: pauses,
+      pause,
       forward,
       rewind,
       elapsedSeconds: time,
       speed: lastSpeed,
       question: answer,
     } = req.body;
-  } catch (TypeError) {
-    return res.sendStatus(400);
+  } catch (err) {
+    if (err instanceof TypeError) return res.sendStatus(400);
+    throw err;
   }
 
-  database.saveFormData({
+  await database.saveAnswer({
+    uid: state.uid,
+    date: new Date(),
     passage: id,
+    position: state.index + 1,
     answer,
-    reading_duration: time,
+    readingDuration: time,
     interactions: {
       slower,
       faster,
-      pauses,
+      pause,
       forward,
       rewind,
     },
