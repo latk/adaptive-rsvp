@@ -89,17 +89,10 @@ input[type="range"] {
   right: 33%;
 }
 
-#close
-{
-  position: absolute;
-  right: 25px;
-  top: 10px;
-  font-size: 2.5rem;
-}
-
-#close:hover
-{
-  color: red;
+.progress-indicator {
+    position: absolute;
+    right: 0.5em;
+    top: 0.5em;
 }
 
 /* Slider Styling */

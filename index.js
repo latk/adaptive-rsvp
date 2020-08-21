@@ -283,6 +283,8 @@ app.get("/text-snippet", ensureState(), function (req, res) {
     arrayOfWords,
     speed,
     id: state.index,
+    taskNumber: state.index + 1,
+    taskTotal: state.textOrder.length,
   });
 });
 
