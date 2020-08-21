@@ -18,6 +18,8 @@ services:
     environment:
       # no auth required, which is secure because mongo is only visible locally
       - DATABASE=mongodb://database/rsvp?retryWrites=true
+      # forward from host environment
+      - DOWNLOAD_CREDENTIALS
 
 volumes:
   data:

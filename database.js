@@ -64,7 +64,7 @@ async function saveAnswer(answer) {
 
 async function getAllAnswers() {
   const answers = await Answer.find({});
-  return answers.map((model) => ({ ...model }));
+  return answers.map((model) => model.toObject());
 }
 
 /**
@@ -87,7 +87,7 @@ async function saveDemographic(demographic) {
 
 async function getAllDemographics() {
   const answers = await Demographic.find({});
-  return answers.map((model) => ({ ...model }));
+  return answers.map((model) => model.toObject());
 }
 
 module.exports = {

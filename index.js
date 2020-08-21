@@ -122,8 +122,7 @@ const ensureState = () => (req, res, next) => {
   state.fromCookie(req.cookies["Information"]);
 
   // no state? Get consent.
-  if (!state.state && req.path !== "/consent")
-    return res.redirect("/consent");
+  if (!state.state && req.path !== "/consent") return res.redirect("/consent");
 
   // demographics?
   if (state.state === "demographic" && req.path !== "/demographic")
@@ -340,6 +339,41 @@ app.post("/text-snippet", ensureState(), async (req, res) => {
 app.get("/finished", ensureState(), (req, res) => {
   return res.render("finished");
 });
+
+/**
+ * Implement HTTP Basic Authentication.
+ *
+ * Credentials `user:pass` are taken from `DOWNLOAD_CREDENTIALS` env variable
+ */
+const ensureDownloadAuthorization = () => (req, res, next) => {
+  const credentials = process.env.DOWNLOAD_CREDENTIALS;
+  const expectedAuthorization =
+    "Basic " + Buffer.from(credentials, "utf8").toString("base64");
+  if (credentials && req.headers.authorization === expectedAuthorization)
+    return next();
+
+  res.set("WWW-Authenticate", 'Basic realm="research data download"');
+  res.status(401);
+  res.send("data download requires authorization token");
+};
+
+app.get(
+  "/download/answers",
+  ensureDownloadAuthorization(),
+  async (req, res) => {
+    const data = await database.getAllAnswers();
+    return res.json(data);
+  }
+);
+
+app.get(
+  "/download/demographics",
+  ensureDownloadAuthorization(),
+  async (req, res) => {
+    const data = await database.getAllDemographics();
+    return res.json(data);
+  }
+);
 
 /**
  * Shuffle the array *in place* and return it.
