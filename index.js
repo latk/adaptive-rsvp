@@ -119,7 +119,7 @@ class UserState {
  */
 const ensureState = () => (req, res, next) => {
   const state = (req.state = new UserState());
-  state.fromCookie(req.cookies["Information"]);
+  state.fromCookie(req.cookies["Information"] || {});
 
   // no state? Get consent.
   if (!state.state && req.path !== "/consent") return res.redirect("/consent");
