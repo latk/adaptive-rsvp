@@ -45,7 +45,7 @@
    if (ui) ui.unmount();
 
    ui = new RsvpUI({
-     tokens: text.split(" "),
+     text,
      defaultWpm: 200,
      $container,
      onComplete: (statistics) => {

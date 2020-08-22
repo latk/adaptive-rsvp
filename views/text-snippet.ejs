@@ -11,7 +11,7 @@
 
   const $container = document.getElementById('rsvp-container');
   //passing words to rsvp Module
-  const tokens = <%- JSON.stringify(arrayOfWords) %>;
+  const text = <%- JSON.stringify(text) %>;
   const defaultWpm = <%= speed %>;
   const id = <%= id %>;
 
@@ -19,7 +19,7 @@
 
   function mountRSVP() {
     let ui = new RsvpUI({
-      tokens,
+      text,
       defaultWpm,
       $container,
       onComplete: (statistics) => {

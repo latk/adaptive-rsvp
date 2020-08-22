@@ -1,5 +1,6 @@
 // @ts-check
 // eslint-env browser,es2017
+/// <reference lib="dom" />
 
 class Timer {
   constructor() {
@@ -34,14 +35,14 @@ export class RsvpModel {
    * Remember to call play() to start the playback.
    *
    * @param {object} config
-   * @param {string[]} config.tokens the words to be shown
+   * @param {string} config.text the words to be shown
    * @param {number} config.wpm the initial speed
    * @param {(token: string) => void} config.onNewToken called to show each token
    * @param {(elapsedTimeMS: number) => void} config.onComplete called after the last token has been read
    * @param {(wpm: number) => void} config.onWpmChange called when the speed is changed
    */
-  constructor({ tokens, wpm, onNewToken, onComplete, onWpmChange }) {
-    this.tokens = tokens;
+  constructor({ text, wpm, onNewToken, onComplete, onWpmChange }) {
+    this.tokens = tokenize(text);
     this.wpm = wpm;
     this.playing = null;
     this.timer = null;
@@ -200,12 +201,12 @@ export class RsvpUI {
    * Remember to `unmount()` the UI afterwards.
    *
    * @param {object} args
-   * @param {string[]} args.tokens
+   * @param {string} args.text
    * @param {number} args.defaultWpm
    * @param {HTMLElement} args.$container where the reader should be mounted
    * @param {({slower, faster, pause, forward, rewind, elapsedSeconds, speed}) => void} args.onComplete
    */
-  constructor({ tokens, defaultWpm, $container, onComplete }) {
+  constructor({ text, defaultWpm, $container, onComplete }) {
     // prepare the container
     $container.classList.add("rsvp-container");
     while ($container.firstChild) {
@@ -226,7 +227,7 @@ export class RsvpUI {
     $message.textContent = "press SPACE to start";
 
     const rsvp = new RsvpModel({
-      tokens,
+      text,
       wpm: defaultWpm,
       onNewToken: (word) => {
         $word.textContent = word;
@@ -263,36 +264,69 @@ export class RsvpUI {
     // support keyboard controls
     const keyboardHandler = (event) => {
       switch (event.key) {
-      case "ArrowUp":
-        rsvp.faster();
-        break;
-      case "ArrowDown":
-        rsvp.slower();
-        break;
-      case "ArrowLeft":
-        rsvp.rewind();
-        break;
-      case " ":
-        rsvp.toggle();
-        updateMessage(rsvp.playing);
-        break;
-      case "ArrowRight":
-        rsvp.forward();
-        break;
+        case "ArrowUp":
+          rsvp.faster();
+          break;
+        case "ArrowDown":
+          rsvp.slower();
+          break;
+        case "ArrowLeft":
+          rsvp.rewind();
+          break;
+        case " ":
+          rsvp.toggle();
+          updateMessage(rsvp.playing);
+          break;
+        case "ArrowRight":
+          rsvp.forward();
+          break;
       }
     };
 
     // mount event listeners
-    $container.addEventListener('click', clickHandler);
-    document.addEventListener('keydown', keyboardHandler);
+    $container.addEventListener("click", clickHandler);
+    document.addEventListener("keydown", keyboardHandler);
 
     this.unmount = () => {
-      document.removeEventListener('keydown', keyboardHandler);
-      $container.removeEventListener('click', clickHandler);
+      document.removeEventListener("keydown", keyboardHandler);
+      $container.removeEventListener("click", clickHandler);
       $container.removeChild($wpmLabel);
       $container.removeChild($message);
       $container.removeChild($word);
       $container.classList.remove("rsvp-container");
     };
   }
+}
+
+/**
+ * Tokenize a text for RSVP display.
+ *
+ * This includes splitting at spaces, but also splitting long hyphenated words
+ * and adding pauses of one token after a sentence.
+ *
+ * @param {string} text
+ * @returns {string[]}
+ */
+export function tokenize(text) {
+  /** @type {string[]} */
+  const tokens = [];
+  for (const t of text.split(/\s+/)) {
+    // possibly split this word at a hyphen
+    const parts = t.match(/^(.{5,})-(.{5,})$/);
+    if (parts) {
+      tokens.push(`${parts[1]}-`);
+      tokens.push(`-${parts[2]}`);
+    } else {
+      tokens.push(t);
+    }
+
+    // Add pause at end of sentence by continuing to show the same word.
+    // The sentence is ended by a token that ends with one of .!?
+    // and is possibly followed by other non-word characters, e.g. quotes.
+    const lastToken = tokens[tokens.length - 1];
+    if (lastToken.match(/[.!?]\W*$/)) {
+      tokens.push(lastToken);
+    }
+  }
+  return tokens;
 }

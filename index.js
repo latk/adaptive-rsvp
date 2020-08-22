@@ -6,7 +6,7 @@ var cookieParser = require("cookie-parser");
 const app = express();
 
 const database = require("./database");
-let { texts } = require("./texts");
+const { texts } = require("./texts");
 
 app.use(cookieParser()); // To access cookies quickly
 
@@ -266,9 +266,6 @@ app.get("/text-snippet", ensureState(), function (req, res) {
     question,
   } = textEntry;
 
-  //creates an array with all the words from the user text
-  let arrayOfWords = `${inputText} Question: ${question}`.split(" ");
-
   if (automaticSpeed) {
     speed = Math.round(speedBasedOnComplexity);
     console.log(
@@ -277,9 +274,9 @@ app.get("/text-snippet", ensureState(), function (req, res) {
     );
   }
 
-  //renders  text-snippet.ejs and passes an array with the name arrayOfWords to the file
+  //renders  text-snippet.ejs and passes the text to be RSVP-rendered
   res.render("text-snippet", {
-    arrayOfWords,
+    text: `${inputText} Question: ${question}`,
     speed,
     id: state.index,
     taskNumber: state.index + 1,
