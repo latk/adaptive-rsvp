@@ -162,7 +162,6 @@ app.post("/consent", (req, res) => {
 });
 
 const DEMOGRAPHIC_DEFAULT = {
-  message: null,
   ageRange: null,
   englishLevel: null,
   vision: null,
@@ -173,7 +172,7 @@ const DEMOGRAPHIC_DEFAULT = {
 };
 
 app.get("/demographic", ensureState(), (req, res) => {
-  res.render("demographic", { ...DEMOGRAPHIC_DEFAULT });
+  res.render("demographic", { currentValues: DEMOGRAPHIC_DEFAULT, message: null });
 });
 
 app.post("/demographic", ensureState(), async (req, res) => {
@@ -203,8 +202,8 @@ app.post("/demographic", ensureState(), async (req, res) => {
   ) {
     res.status(400);
     res.render("demographic", {
-      ...params,
-      message: "please answer all questions or select N/A.",
+      message: "please answer all questions or select “prefer not to answer”.",
+      currentValues: params,
     });
     return;
   }

@@ -1,12 +1,43 @@
 <%- include("partials/header.ejs") -%>
 
+<style>
+ h2 {
+     margin-top: 1em;
+ }
+</style>
+
+<% const radioButton = ({name, value, isChecked, message}) => { %>
+  <% const id = name + '-' + value.replace(/\W+/g, '-'); %>
+  <div class="form-check">
+    <input class="form-check-input"
+           type="radio"
+           name="<%=name%>"
+           id="<%=id%>"
+           value="<%=value%>"
+           required
+           <% if (isChecked) {%> checked <% } %>>
+    <label class="form-check-label" for="<%=id%>">
+      <%=message%>
+    </label>
+  </div>
+<% }; %>
+
+<%
+const radioButtonGroup = ({name, values}) => {
+  for (const entry of [...values, {value: 'N/A', message: "prefer not to answer"}]) {
+    const value = entry.value || entry;
+    const message = entry.message || entry;
+    radioButton({name, value, message, isChecked: value === currentValues[name]})
+  }
+};
+%>
+
 <form class="cover-container p-3 mx-auto text-left" action="/demographic" method="post">
   <h1>Background questions</h1>
 
   <p>
     Please provide a bit of background information.
-    If you don't want to answer a question,
-    please select the “N/A” option.
+    Select “prefer not to answer” if you want to skip a question.
   </p>
 
   <% if (message) { %>
@@ -17,105 +48,75 @@
 
   <h2>How old are you?</h2>
 
-  <% for (let opt of ['0-17', '18-25', '25-34', '35-54', '55+', 'N/A']) { %>
-  <div class="form-check">
-    <input class="form-check-input" type="radio" name="ageRange"
-           id="ageRange-<%= opt.replace(/\W+/g, '-') %>" value="<%= opt%>"
-           <% if (opt === ageRange) {%> checked <% } %>>
-    <label class="form-check-label" for="ageRange-<%= opt.replace(/\W+/g, '-') %>">
-      <%= opt %>
-    </label>
-  </div>
-  <% } %>
+  <%radioButtonGroup({
+    name: 'ageRange',
+    values: ['0-17', '18-25', '25-34', '35-54', '55+'],
+  })%>
 
-  <h2>How is your English level?</h2>
+  <h2>How are your English skills?</h2>
 
   <p>
     Please select your approximate English level
     as described by the Common European Framework of Reference for Languages (CERFL) scale.
   </p>
 
-  <% for (let opt of ['A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'N/A']) { %>
-  <div class="form-check">
-    <input class="form-check-input" type="radio" name="englishLevel"
-           id="englishLevel-<%= opt.replace(/\W+/g, '-') %>" value="<%= opt %>"
-           <% if (opt === englishLevel) {%> checked <% } %>>
-    <label class="form-check-label" for="englishLevel-<%= opt.replace(/\W+/, '-') %>">
-      <%= opt %> <%= {
-        A1: 'beginner', A2: 'elementary',
-        B1: 'intermediate', B2: 'upper intermediate',
-        C1: 'advanced', C2: 'native proficiency',
-      }[opt] || '' %>
-    </label>
-  </div>
-  <% } %>
+  <%radioButtonGroup({
+    name: 'englishLevel',
+    values: [
+      { value: 'A1', message: 'A1 (beginner)' },
+      { value: 'A2', message: 'A2 (elementary)' },
+      { value: 'B1', message: 'B1 (intermediate)' },
+      { value: 'B2', message: 'B2 (upper intermediate)' },
+      { value: 'C1', message: 'C1 (advanced)' },
+      { value: 'C2', message: 'C2 (native proficiency)' },
+    ],
+  })%>
 
   <h2>How's your eyesight?</h2>
 
-  <% for (let opt of ['normal', 'corrected', 'impaired', 'N/A']) { %>
-    <div class="form-check">
-      <input class="form-check-input" type="radio" name="vision"
-             id="vision-<%= opt.replace(/\W+/g, '-') %>" value="<%= opt %>"
-             <% if (opt === vision) {%> checked <% } %>>
-      <label class="form-check-label" for="vision-<%= opt.replace(/\W+/g, '-') %>">
-        <%= opt %> <%= {
-          'corrected': 'e.g. with glasses or contacts',
-          'impaired': 'e.g. partial blindness',
-        }[opt] || ''%>
-      </label>
-    </div>
-  <% } %>
+  <%radioButtonGroup({
+    name: 'vision',
+    values: [
+      'normal',
+      { value: 'corrected', message: 'corrected, e.g. with glasses or contacts' },
+      { value: 'impaired', message: 'impaired, e.g. partial blindness' },
+    ],
+  })%>
 
   <h2>How did you learn about this study?</h2>
 
-  <% for (let opt of ['student', 'other', 'N/A']) { %>
-    <div class="form-check">
-      <input class="form-check-input" type="radio" name="source"
-             id="source-<%= opt.replace(/\W+/g, '-') %>" value="<%= opt %>"
-             <% if (opt === source) {%> checked <% } %>>
-      <label class="form-check-label" for="source-<%= opt.replace(/\W+/g, '-') %>">
-        <%= {
-          'student': "I'm a student in Prof. Schwind's course",
-        }[opt] || opt%>
-      </label>
-    </div>
-  <% } %>
+  <%radioButtonGroup({
+    name: 'source',
+    values: [
+      { value: 'student', message: "I'm a student in Prof. Schwind's course" },
+      "other",
+    ],
+  })%>
 
   <h2>Do you have prior experience with Rapid Serial Visual Presentation (RSVP) for speed reading?</h2>
 
-  <% for (let opt of ['no', 'other', 'heared', 'occasional', 'yes', 'N/A']) { %>
-    <div class="form-check">
-      <input class="form-check-input" type="radio" name="rsvpExperience"
-             id="rsvpExperience-<%= opt.replace(/\W+/g, '-') %>" value="<%= opt %>"
-             <% if (opt === rsvpExperience) {%> checked <% } %>>
-      <label class="form-check-label" for="rsvpExperience-<%= opt.replace(/\W+/g, '-') %>">
-        <%= {
-          'other': 'no, but I\'ve used other speed reading methods',
-          'heared': 'not really, but I\'ve heared about it',
-          'occasional': 'I have used RSVP occasionally',
-          'yes': 'I have used RSVP regularly or repeteadly in the past',
-        }[opt] || opt%>
-      </label>
-    </div>
-  <% } %>
+  <%radioButtonGroup({
+    name: 'rsvpExperience',
+    values: [
+      'no',
+      { value: 'other', message: 'no, but I\'ve used other speed reading methods' },
+      { value: 'heared', message: 'not really, but I\'ve heard about it' },
+      { value: 'occasional', message: 'I have used RSVP occasionally' },
+      { value: 'yes', message: 'I have used RSVP regularly or repeatedly in the past' },
+    ],
+  })%>
 
   <h2>What device are you using for this study?</h2>
 
-  <% for (let opt of ['PC', 'laptop', 'mobile-keyboard', 'mobile', 'N/A']) { %>
-    <div class="form-check">
-      <input class="form-check-input" type="radio" name="device"
-             id="device-<%= opt.replace(/\W+/g, '-') %>" value="<%= opt %>"
-             <% if (opt === device) {%> checked <% } %>>
-      <label class="form-check-label" for="device-<%= opt.replace(/\W+/g, '-') %>">
-        <%= {
-          'PC': 'PC, or laptop with external monitor',
-          'laptop': 'laptop or convertible',
-          'mobile-keyboard': 'phone, iPad, or tablet with external keyboard',
-          'mobile': 'other mobile device*',
-        }[opt] || opt%>
-      </label>
-    </div>
-  <% } %>
+  <%radioButtonGroup({
+    name: 'device',
+    values: [
+        { value: 'PC', message: 'PC, or laptop with external monitor' },
+        { value: 'laptop', message: 'laptop or convertible' },
+        { value: 'mobile-keyboard', message: 'phone, iPad, or tablet with external keyboard' },
+        { value: 'mobile', message: 'other mobile device*' },
+    ],
+  })%>
 
   <p>
     * This study requires that you use a physical keyboard with arrow keys.
@@ -123,23 +124,16 @@
     please restart the study on another device.
   </p>
 
-
   <h2>How are your light conditions?</h2>
 
-  <% for (let opt of ['bright', 'good', 'slightly dim', 'dark', 'N/A']) { %>
-    <div class="form-check">
-      <input class="form-check-input" type="radio"
-             name="light" id="light-<%= opt.replace(/\W+/g, '-') %>" value="<%= opt %>"
-             <% if (opt === device) {%> checked <% } %>>
-      <label class="form-check-label" for="light-<%= opt.replace(/\W+/g, '-') %>">
-        <%=  opt%>
-      </label>
-    </div>
-  <% } %>
+  <%radioButtonGroup({
+    name: 'light',
+    values: ['bright', 'good', 'slightly dim', 'dark'],
+  })%>
 
   <h2>Next: short RSVP tutorial</h2>
 
-  <button class="btn btn-secondary">submit answers</button>
+  <button type="submit" class="btn btn-secondary">submit answers</button>
 </form>
 
 <%- include("partials/footer.ejs") -%>
