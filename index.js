@@ -387,4 +387,13 @@ function shuffle(array) {
   return array;
 }
 
-app.listen(3000, () => console.log("The application started on port 3000"));
+const server = app.listen(3000, () =>
+  console.log("The application started on port 3000")
+);
+
+process.on("SIGTERM", () => {
+  console.log("Shutdown initiated.");
+  server.close(() => {
+    console.log("Shutdown complete.");
+  });
+});
