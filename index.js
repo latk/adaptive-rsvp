@@ -209,7 +209,7 @@ app.post("/demographic", ensureState(), async (req, res) => {
     return;
   }
 
-  await database.saveDemographic({
+  const saveDemographic = database.saveDemographic({
     uid: state.uid,
     date: new Date(),
     ageRange,
@@ -220,6 +220,14 @@ app.post("/demographic", ensureState(), async (req, res) => {
     device,
     light,
   });
+
+  const saveTextOrder = database.saveTextOrder({
+    uid: state.uid,
+    textOrder: state.textOrder,
+  });
+
+  await saveDemographic;
+  await saveTextOrder;
 
   state.state = "tutorial";
   res.cookie("Information", state.toCookie());
@@ -337,6 +345,21 @@ app.get("/finished", ensureState(), (req, res) => {
   return res.render("finished");
 });
 
+// bugfix to get text order
+app.get("/bugfix-ids", async (req, res) => {
+  const state = req.cookies["Information"];
+  if (state.uid && state.textOrder) {
+    await database.saveTextOrder({
+      uid: state.uid,
+      textOrder: state.textOrder,
+    });
+  }
+
+  res.status(200)
+    .type('html')
+    .send("<p>Thank you! <p><a href='/'>back to start page</a>");
+});
+
 /**
  * Implement HTTP Basic Authentication.
  *
@@ -371,6 +394,16 @@ app.get(
     return res.json(data);
   }
 );
+
+app.get(
+  "/download/text-order",
+  ensureDownloadAuthorization(),
+  async (req, res) => {
+    const data = await database.getAllTextOrders();
+    return res.json(data);
+  }
+);
+
 
 /**
  * Shuffle the array *in place* and return it.

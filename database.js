@@ -39,8 +39,14 @@ const demographicSchema = new mongoose.Schema({
   light: String,
 });
 
+const textOrderSchema = new mongoose.Schema({
+  uid: String,
+  textOrder: [Number],
+});
+
 const Answer = new mongoose.model("Answer", answerSchema);
 const Demographic = new mongoose.model("Demographic", demographicSchema);
+const TextOrder = new mongoose.model("TextOrder", textOrderSchema);
 
 /** save an answer to the text snippet comprehension question, including interaction statistics
  *
@@ -90,9 +96,26 @@ async function getAllDemographics() {
   return answers.map((model) => model.toObject());
 }
 
+/**
+ * save the text order
+ * @param {object} args
+ * @param {string} args.uid
+ * @param {number[]} args.textOrder
+ */
+async function saveTextOrder(args) {
+  await new TextOrder(args).save();
+}
+
+async function getAllTextOrders() {
+  const orders = await TextOrder.find({});
+  return orders.map((model) => model.toObject());
+}
+
 module.exports = {
   saveAnswer,
   getAllAnswers,
   saveDemographic,
   getAllDemographics,
+  saveTextOrder,
+  getAllTextOrders,
 };
