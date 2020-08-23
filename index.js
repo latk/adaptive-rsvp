@@ -348,7 +348,7 @@ app.get("/finished", ensureState(), (req, res) => {
 // bugfix to get text order
 app.get("/bugfix-ids", async (req, res) => {
   const state = req.cookies["Information"];
-  if (state.uid && state.textOrder) {
+  if (state && state.uid && state.textOrder) {
     await database.saveTextOrder({
       uid: state.uid,
       textOrder: state.textOrder,
