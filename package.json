@@ -9,8 +9,14 @@
   "keywords": [
     "RSVP"
   ],
-  "author": "Renis Fejzo",
-  "license": "ISC",
+  "author": "RSVP project",
+  "contributors": [
+    "Renis Fejzo",
+    "Lukas Atkinson",
+    "and possibly others"
+  ],
+  "private": true,
+  "license": "Apache-2.0",
   "dependencies": {
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.5",
