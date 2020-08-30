@@ -3,7 +3,7 @@
 const { interpolate, calculateComplexityScore } = require("./textMethods.js");
 
 /**
- * @typedef {{text: string, question: string, expectedAnswer: ('yes' | 'no'), score: number, speed: number, automaticSpeed: boolean}} Entry
+ * @typedef {{text: string, question: string, expectedAnswer: ('yes' | 'no'), words: number, score: number, speed: number, automaticSpeed: boolean}} Entry
  */
 
 /**
@@ -20,12 +20,15 @@ let texts = [];
  * @param {('yes' | 'no')} args.expectedAnswer
  */
 const addText = ({ text, question, expectedAnswer }) => {
-  let score = calculateComplexityScore(`${text} Question: ${question}`);
+  let fullText = `${text} Question: ${question}`;
+  let words = fullText.split(/\s+/).length;
+  let score = calculateComplexityScore(fullText);
   let speed = interpolate(score);
   texts.push({
     text,
     question,
     expectedAnswer,
+    words,
     score,
     speed,
     automaticSpeed: undefined,
